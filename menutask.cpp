@@ -127,7 +127,7 @@ void MenuTask::logic()
         menu_open = false;
         key_held_down = true;
     }
-    else if(keyPressed(KEY_NSPIRE_MENU) || keyPressed(KEY_NSPIRE_ESC))
+    else if(keyPressed(KEY_NSPIRE_MENU) || keyPressed(KEY_NSPIRE_ESC) )
     {
         menu_open = false;
         key_held_down = true;

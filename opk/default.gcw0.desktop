@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Crafti
+Comment=Minecraft clone
+Exec=crafti.elf
+Icon=icon
+Terminal=false
+Categories=games;
+X-OD-NeedsDownscaling=false

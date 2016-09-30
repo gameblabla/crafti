@@ -5,6 +5,7 @@
     #define LIBNDLS_H
 
     #include <stdint.h>
+    #include <SDL.h>
 
     typedef enum {
         SCR_TYPE_INVALID=-1,
@@ -15,9 +16,11 @@
         SCR_320x240_8=4,
         SCR_TYPE_COUNT=5
     } scr_type_t;
+   
 
     #define lcd_type(x) SCR_320x240_565
 
+    //#define isKeyPressed(x) keystate[x]
     #define isKeyPressed(x) 0
     #define is_classic 0
     #define is_cx 1
@@ -67,8 +70,39 @@
     /* Used to fill up a nonexistent key on a model */
     #define _KEY_DUMMY_ROW 0x1C
     #define _KEY_DUMMY_COL 0x400
-
-    static const t_key KEY_NSPIRE_RET        = KEY_(0x10, 0x001);
+    
+    #define KEY_NSPIRE_8 SDLK_UP
+    #define KEY_NSPIRE_2 SDLK_DOWN
+    #define KEY_NSPIRE_4 SDLK_TAB
+    #define KEY_NSPIRE_6 SDLK_BACKSPACE
+    
+    #define KEY_NSPIRE_UP 555
+    #define KEY_NSPIRE_DOWN 556
+    
+    #define KEY_NSPIRE_LEFT SDLK_LEFT
+    #define KEY_NSPIRE_RIGHT SDLK_RIGHT
+     
+    #define KEY_NSPIRE_DOC SDLK_SPACE
+    #define KEY_NSPIRE_5 SDLK_SPACE
+    #define KEY_NSPIRE_CLICK SDLK_LCTRL
+    
+    #define KEY_NSPIRE_ESC SDLK_ESCAPE
+    #define KEY_NSPIRE_PERIOD SDLK_ESCAPE
+    #define KEY_NSPIRE_MENU SDLK_RETURN
+    
+    #define KEY_NSPIRE_1 0
+    #define KEY_NSPIRE_3 SDLK_LSHIFT
+    
+    #define KEY_NSPIRE_7 SDLK_LCTRL
+    #define KEY_NSPIRE_9 SDLK_LALT
+    
+    #define KEY_NSPIRE_MINUS 0
+    #define KEY_NSPIRE_PLUS 0
+    #define KEY_NSPIRE_0 0
+    
+    #define KEY_NSPIRE_CTRL 0
+    
+    /*static const t_key KEY_NSPIRE_RET        = KEY_(0x10, 0x001);
     static const t_key KEY_NSPIRE_ENTER      = KEY_(0x10, 0x002);
     static const t_key KEY_NSPIRE_SPACE      = KEYTPAD_(0x10, 0x004, 0x10, 0x10);
     static const t_key KEY_NSPIRE_NEGATIVE   = KEY_(0x10, 0x008);
@@ -160,56 +194,7 @@
     static const t_key KEY_NSPIRE_TRIG       = KEYTPAD_(_KEY_DUMMY_ROW, _KEY_DUMMY_COL, 0x12, 0x200);
     static const t_key KEY_NSPIRE_SCRATCHPAD = KEYTPAD_(_KEY_DUMMY_ROW, _KEY_DUMMY_COL, 0x1A, 0x400);
 
-    /* TI-84+ Keypad Mappings */
-    static const t_key KEY_84_DOWN     = KEY_(0x10, 0x001);
-    static const t_key KEY_84_LEFT     = KEY_(0x10, 0x002);
-    static const t_key KEY_84_RIGHT    = KEY_(0x10, 0x004);
-    static const t_key KEY_84_UP       = KEY_(0x10, 0x008);
-    static const t_key KEY_84_ENTER    = KEY_(0x12, 0x001);
-    static const t_key KEY_84_PLUS     = KEY_(0x12, 0x002);
-    static const t_key KEY_84_MINUS    = KEY_(0x12, 0x004);
-    static const t_key KEY_84_MULTIPLY = KEY_(0x12, 0x008);
-    static const t_key KEY_84_DIVIDE   = KEY_(0x12, 0x010);
-    static const t_key KEY_84_EXP      = KEY_(0x12, 0x020);
-    static const t_key KEY_84_CLEAR    = KEY_(0x12, 0x040);
-    static const t_key KEY_84_NEGATIVE = KEY_(0x14, 0x001);
-    static const t_key KEY_84_3        = KEY_(0x14, 0x002);
-    static const t_key KEY_84_6        = KEY_(0x14, 0x004);
-    static const t_key KEY_84_9        = KEY_(0x14, 0x008);
-    static const t_key KEY_84_RP       = KEY_(0x14, 0x010);
-    static const t_key KEY_84_TAN      = KEY_(0x14, 0x020);
-    static const t_key KEY_84_VARS     = KEY_(0x14, 0x040);
-    static const t_key KEY_84_PERIOD   = KEY_(0x16, 0x001);
-    static const t_key KEY_84_2        = KEY_(0x16, 0x002);
-    static const t_key KEY_84_5        = KEY_(0x16, 0x004);
-    static const t_key KEY_84_8        = KEY_(0x16, 0x008);
-    static const t_key KEY_84_LP       = KEY_(0x16, 0x010);
-    static const t_key KEY_84_COS      = KEY_(0x16, 0x020);
-    static const t_key KEY_84_PRGM     = KEY_(0x16, 0x040);
-    static const t_key KEY_84_STAT     = KEY_(0x16, 0x080);
-    static const t_key KEY_84_0        = KEY_(0x18, 0x001);
-    static const t_key KEY_84_1        = KEY_(0x18, 0x002);
-    static const t_key KEY_84_4        = KEY_(0x18, 0x004);
-    static const t_key KEY_84_7        = KEY_(0x18, 0x008);
-    static const t_key KEY_84_COMMA    = KEY_(0x18, 0x010);
-    static const t_key KEY_84_SIN      = KEY_(0x18, 0x020);
-    static const t_key KEY_84_APPS     = KEY_(0x18, 0x040);
-    static const t_key KEY_84_X        = KEY_(0x18, 0x080);
-    static const t_key KEY_84_STO      = KEY_(0x1A, 0x002);
-    static const t_key KEY_84_LN       = KEY_(0x1A, 0x004);
-    static const t_key KEY_84_LOG      = KEY_(0x1A, 0x008);
-    static const t_key KEY_84_SQU      = KEY_(0x1A, 0x010);
-    static const t_key KEY_84_INV      = KEY_(0x1A, 0x020);
-    static const t_key KEY_84_MATH     = KEY_(0x1A, 0x040);
-    static const t_key KEY_84_ALPHA    = KEY_(0x1A, 0x080);
-    static const t_key KEY_84_GRAPH    = KEY_(0x1C, 0x001);
-    static const t_key KEY_84_TRACE    = KEY_(0x1C, 0x002);
-    static const t_key KEY_84_ZOOM     = KEY_(0x1C, 0x004);
-    static const t_key KEY_84_WIND     = KEY_(0x1C, 0x008);
-    static const t_key KEY_84_YEQU     = KEY_(0x1C, 0x010);
-    static const t_key KEY_84_2ND      = KEY_(0x1C, 0x020);
-    static const t_key KEY_84_MODE     = KEY_(0x1C, 0x040);
-    static const t_key KEY_84_DEL      = KEY_(0x1C, 0x080);
+    */
 
 
     #endif // !KEYS_H

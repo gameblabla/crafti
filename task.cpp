@@ -6,6 +6,8 @@
 #include "settingstask.h"
 #include "inventory.h"
 
+#include <SDL.h>
+
 //The values have to stay somewhere
 Task *Task::current_task;
 bool Task::key_held_down, Task::running, Task::background_saved, Task::has_touchpad, Task::keys_inverted;
@@ -17,21 +19,46 @@ void Task::makeCurrent()
     current_task = this;
 }
 
-bool Task::keyPressed(const t_key &key)
+bool Task::keyPressed(int key)
 {
-    #ifdef _TINSPIRE
-        if(has_touchpad)
-        {
-            if(key.tpad_arrow != TPAD_ARROW_NONE)
-                return touchpad_arrow_pressed(key.tpad_arrow);
-            else
-                return !(*reinterpret_cast<volatile uint16_t*>(0x900E0000 + key.tpad_row) & key.tpad_col) == keys_inverted;
-        }
-        else
-            return (*reinterpret_cast<volatile uint16_t*>(0x900E0000 + key.row) & key.col) == 0;
-    #else
-        return false;
-    #endif
+	int y_joy, x_joy;
+	SDL_Event eventd;
+	SDL_Joystick *joy;
+	Uint8 *keysd = SDL_GetKeyState(NULL);
+	
+	if (SDL_NumJoysticks() > 0) joy = SDL_JoystickOpen(0);
+	x_joy = SDL_JoystickGetAxis(joy, 0);
+	y_joy = SDL_JoystickGetAxis(joy, 1);
+	
+	SDL_JoystickUpdate();
+	SDL_PollEvent(&eventd);
+	
+	if (key == 555 || key == 556 || key == SDLK_LEFT || key==SDLK_RIGHT)
+	{
+		if (x_joy < -5000 && key == SDLK_LEFT)
+		{
+			return true;
+		}
+		else if (x_joy > 5000 && key == SDLK_RIGHT)
+		{
+			return true;
+		}
+		
+		if (y_joy < -5000 && key == 555)
+		{
+			return true;
+		}
+		else if (y_joy > 5000 && key == 556)
+		{
+			return true;
+		}
+	}
+	
+	if (keysd[key])
+	{
+		return true;
+	}
+	return false;
 }
 
 void Task::initializeGlobals(const char *savefile)

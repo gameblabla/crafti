@@ -133,7 +133,7 @@ void WorldTask::logic()
             can_jump = true;
     }
 
-    if(keyPressed(KEY_NSPIRE_5) && can_jump) //Jump
+    if(keyPressed(KEY_NSPIRE_DOC) && can_jump) //Jump
     {
         vy = 50;
         can_jump = false;

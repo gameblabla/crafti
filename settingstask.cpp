@@ -32,7 +32,7 @@ const char *world_static_values[] = {
 SettingsTask::SettingsTask()
 {
     //Must have the same order as the "Settings" enum
-    settings.push_back({"Leaves", leaves_values, 2, 0, 0, 1});
+    settings.push_back({"Leaves", leaves_values, 2, 1, 0, 1});
     settings.push_back({"Speed", speed_values, 3, 1, 0, 1});
     settings.push_back({"Distance", nullptr, 10, 2, 1, 1});
     settings.push_back({"Fast mode", fastmode_values, 2, 0, 0, 1});
@@ -54,7 +54,7 @@ void SettingsTask::makeCurrent()
 
     settings[DISTANCE].current_value = world.fieldOfView();
 
-    changed_something = false;
+    changed_something = true;
 
     Task::makeCurrent();
 }
@@ -99,7 +99,7 @@ void SettingsTask::logic()
 {
     if(key_held_down)
         key_held_down = keyPressed(KEY_NSPIRE_ESC) || keyPressed(KEY_NSPIRE_UP) || keyPressed(KEY_NSPIRE_DOWN) || keyPressed(KEY_NSPIRE_2) || keyPressed(KEY_NSPIRE_8) || keyPressed(KEY_NSPIRE_LEFT) || keyPressed(KEY_NSPIRE_4) || keyPressed(KEY_NSPIRE_RIGHT) || keyPressed(KEY_NSPIRE_6);
-    else if(keyPressed(KEY_NSPIRE_ESC))
+    else if(keyPressed(KEY_NSPIRE_ESC) || keyPressed(KEY_NSPIRE_9) || keyPressed(KEY_NSPIRE_MENU))
     {
         world_task.makeCurrent();
 
