@@ -22,6 +22,7 @@ Since the GCW Zero is much more powerful than a TI-Nspire (around 10x faster),
 i have enabled Perspective Correction so you should get better graphics than on a ti-nspire.
 I still made the fast mode available, if you like how it looks.
 
+
 ===========
 Controls
 ===========
