@@ -63,7 +63,7 @@ void nglInit()
     #else
         SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
         #ifdef GCW0
-        scr = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 16, SDL_HWSURFACE | SDL_TRIPLEBUF);
+        scr = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 16, SDL_HWSURFACE);
         #else
         scr = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 16, SDL_SWSURFACE);
         #endif

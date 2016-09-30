@@ -1,7 +1,7 @@
 GCC = mipsel-linux-gcc
 GPP = mipsel-linux-g++
 LD = mipsel-linux-g++
-GCCFLAGS = -I/usr/include/SDL -Ofast -mips32r2 -fno-rtti -fgcse-sm -fgcse-las -ffunction-sections -fdata-sections -I ngl -I.
+GCCFLAGS = -I/usr/include/SDL -DGCW0 -Ofast -mips32r2 -fno-rtti -fgcse-sm -fgcse-las -ffunction-sections -fdata-sections -I ngl -I.
 LDFLAGS = -lm -lSDL -Wl,--gc-sections -flto
 EXE = crafti
 OBJS = $(patsubst %.c, %.o, $(shell find . -name \*.c))
