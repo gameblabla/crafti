@@ -10,6 +10,8 @@
 #include "worldtask.h"
 
 BlockListTask block_list_task;
+unsigned char fields_x = 8;
+unsigned char fields_y = 6;
 
 static const BLOCK_WDATA user_selectable[] = {
     BLOCK_STONE,
@@ -92,13 +94,14 @@ void BlockListTask::render()
 
     const int field_width = 32;
     const int field_height = 32;
-    const int fields_x = blocklist_width / field_width;
-    const int fields_y = blocklist_height / field_height;
+	fields_x = blocklist_width / field_width;
+	fields_y = blocklist_height / field_height;
 
     drawTextureOverlay(*blocklist_background, 0, 0, *screen, blocklist_left, blocklist_top, blocklist_background->width, blocklist_background->height);
 
     int block_nr = 0;
     int screen_x, screen_y = blocklist_top;
+
     for(int y = 0; y < fields_y; y++, screen_y += field_height)
     {
         screen_x = blocklist_left;
@@ -138,30 +141,30 @@ void BlockListTask::logic()
     }
     else if(keyPressed(KEY_NSPIRE_2) || keyPressed(KEY_NSPIRE_DOWN))
     {
-        current_selection += 8;
+        current_selection += fields_x;
         if(current_selection >= user_selectable_count)
-            current_selection %= 8;
+            current_selection %= fields_x;
 
         key_held_down = true;
     }
     else if(keyPressed(KEY_NSPIRE_8) || keyPressed(KEY_NSPIRE_UP))
     {
-        if(current_selection >= 8)
-            current_selection -= 8;
+        if(current_selection >= fields_x)
+            current_selection -= fields_x;
         else
         {
             current_selection = ((user_selectable_count - 1) / 8) * 8 + (current_selection % 8);
             if(current_selection >= user_selectable_count)
-                current_selection -= 8;
+                current_selection -= fields_x;
         }
 
         key_held_down = true;
     }
     else if(keyPressed(KEY_NSPIRE_4) || keyPressed(KEY_NSPIRE_LEFT))
     {
-        if(current_selection % 8 == 0)
+        if(current_selection % fields_x == 0)
         {
-            current_selection += 7;
+            current_selection += (fields_x-1);
             if(current_selection >= user_selectable_count)
                 current_selection = user_selectable_count - 1;
         }
@@ -172,10 +175,10 @@ void BlockListTask::logic()
     }
     else if(keyPressed(KEY_NSPIRE_6) || keyPressed(KEY_NSPIRE_RIGHT))
     {
-        if(current_selection % 8 != 7 && current_selection < user_selectable_count - 1)
+        if(current_selection % fields_x != (fields_x-1) && current_selection < user_selectable_count - 1)
             current_selection++;
         else
-            current_selection -= current_selection % 8;
+            current_selection -= current_selection % fields_x;
 
         key_held_down = true;
     }

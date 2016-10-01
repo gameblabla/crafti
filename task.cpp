@@ -26,9 +26,12 @@ bool Task::keyPressed(int key)
 	SDL_Joystick *joy;
 	Uint8 *keysd = SDL_GetKeyState(NULL);
 	
-	if (SDL_NumJoysticks() > 0) joy = SDL_JoystickOpen(0);
-	x_joy = SDL_JoystickGetAxis(joy, 0);
-	y_joy = SDL_JoystickGetAxis(joy, 1);
+	if (SDL_NumJoysticks() > 0) 
+	{
+		joy = SDL_JoystickOpen(0);
+		x_joy = SDL_JoystickGetAxis(joy, 0);
+		y_joy = SDL_JoystickGetAxis(joy, 1);
+	}
 	
 	SDL_JoystickUpdate();
 	SDL_PollEvent(&eventd);
