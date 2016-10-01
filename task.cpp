@@ -21,47 +21,55 @@ void Task::makeCurrent()
 
 bool Task::keyPressed(int key)
 {
-	int y_joy, x_joy;
-	SDL_Event eventd;
+#ifdef _TINSPIRE
+
+#else
+	struct j
+	{
+		int x;
+		int y;
+	} joy_cord[2];
+	SDL_Event event;
 	SDL_Joystick *joy;
-	Uint8 *keysd = SDL_GetKeyState(NULL);
+	Uint8 *keystate = SDL_GetKeyState(NULL);
 	
 	if (SDL_NumJoysticks() > 0) 
 	{
 		joy = SDL_JoystickOpen(0);
-		x_joy = SDL_JoystickGetAxis(joy, 0);
-		y_joy = SDL_JoystickGetAxis(joy, 1);
+		joy_cord[0].x = SDL_JoystickGetAxis(joy, 0);
+		joy_cord[0].y = SDL_JoystickGetAxis(joy, 1);
 	}
 	
 	SDL_JoystickUpdate();
-	SDL_PollEvent(&eventd);
+	SDL_PollEvent(&event);
 	
 	if (key == 555 || key == 556 || key == SDLK_LEFT || key==SDLK_RIGHT)
 	{
-		if (x_joy < -5000 && key == SDLK_LEFT)
+		if (joy_cord[0].x < -8000 && key == SDLK_LEFT)
 		{
 			return true;
 		}
-		else if (x_joy > 5000 && key == SDLK_RIGHT)
+		else if (joy_cord[0].x > 8000 && key == SDLK_RIGHT)
 		{
 			return true;
 		}
 		
-		if (y_joy < -5000 && key == 555)
+		if (joy_cord[0].y < -8000 && key == 555)
 		{
 			return true;
 		}
-		else if (y_joy > 5000 && key == 556)
+		else if (joy_cord[0].y > 8000 && key == 556)
 		{
 			return true;
 		}
 	}
 	
-	if (keysd[key])
+	if (keystate[key])
 	{
 		return true;
 	}
 	return false;
+#endif
 }
 
 void Task::initializeGlobals(const char *savefile)

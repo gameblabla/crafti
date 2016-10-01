@@ -12,6 +12,7 @@
 #include "inventory.h"
 
 #include "textures/blockselection.h"
+#include "sound.h"
 
 WorldTask world_task;
 
@@ -240,6 +241,7 @@ void WorldTask::logic()
     }
     else if(keyPressed(KEY_NSPIRE_7)) //Put block down
     {
+		Play_SFX(0);
         if(selection_side != AABB::NONE)
         {
             if(!world.blockAction(selection_pos.x, selection_pos.y, selection_pos.z))
@@ -299,6 +301,7 @@ void WorldTask::logic()
     }
     else if(keyPressed(KEY_NSPIRE_9)) //Remove block
     {
+		Play_SFX(1);
         if(selection_side != AABB::NONE && world.getBlock(selection_pos.x, selection_pos.y, selection_pos.z) != BLOCK_BEDROCK)
             world.changeBlock(selection_pos.x, selection_pos.y, selection_pos.z, BLOCK_AIR);
 

@@ -2,7 +2,7 @@
 
 #include "world.h"
 #include "tntrenderer.h"
-
+#include "sound.h"
 void TNTRenderer::tick(const BLOCK_WDATA /*block*/, int local_x, int local_y, int local_z, Chunk &c)
 {
     if(c.isBlockPowered(local_x, local_y, local_z))
@@ -11,6 +11,7 @@ void TNTRenderer::tick(const BLOCK_WDATA /*block*/, int local_x, int local_y, in
 
 void TNTRenderer::explode(const int local_x, const int local_y, const int local_z, Chunk &c)
 {
+	Play_SFX(2);
     c.setGlobalBlockRelative(local_x, local_y, local_z, BLOCK_AIR);
 
     for(int dist = 1; dist <= 3; ++dist)

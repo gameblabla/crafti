@@ -7,6 +7,7 @@
 #include "terrain.h"
 #include "worldtask.h"
 #include "settingstask.h"
+#include "sound.h"
 //#include "textures/loading.h"
 
 
@@ -79,6 +80,8 @@ int main(int argc, char *argv[])
     //Start with WorldTask as current task
     world_task.makeCurrent();
     Apply();
+    
+    Init_Sound();
 
     while(Task::running)
     {
@@ -109,6 +112,8 @@ int main(int argc, char *argv[])
     nglUninit();
 
     terrainUninit();
+    
+    Close_Sound();
 
     return 0;
 }
