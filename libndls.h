@@ -73,8 +73,15 @@
     
     #define KEY_NSPIRE_8 SDLK_UP
     #define KEY_NSPIRE_2 SDLK_DOWN
-    #define KEY_NSPIRE_4 SDLK_TAB
-    #define KEY_NSPIRE_6 SDLK_BACKSPACE
+   
+	/*#define KEY_NSPIRE_4 SDLK_TAB
+    #define KEY_NSPIRE_6 SDLK_BACKSPACE*/
+	#define KEY_NSPIRE_4 0
+    #define KEY_NSPIRE_6 0
+    #define KEY_NSPIRE_3 SDLK_BACKSPACE
+    #define KEY_NSPIRE_1 SDLK_TAB
+    
+	#define KEY_NSPIRE_PERIOD SDLK_LSHIFT
     
     #define KEY_NSPIRE_UP 555
     #define KEY_NSPIRE_DOWN 556
@@ -87,12 +94,8 @@
     #define KEY_NSPIRE_CLICK SDLK_LCTRL
     
     #define KEY_NSPIRE_ESC SDLK_ESCAPE
-    #define KEY_NSPIRE_PERIOD SDLK_ESCAPE
     #define KEY_NSPIRE_MENU SDLK_RETURN
-    
-    #define KEY_NSPIRE_1 0
-    #define KEY_NSPIRE_3 SDLK_LSHIFT
-    
+
     #define KEY_NSPIRE_7 SDLK_LCTRL
     #define KEY_NSPIRE_9 SDLK_LALT
     

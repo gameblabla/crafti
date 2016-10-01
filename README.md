@@ -29,10 +29,11 @@ Controls
 
 B - Remove a block
 A - Put a block/Confirm
-X - Change equipped block
+X - Menu (Inventory)
 Y - Jump
-L - Strafe Left
-R - Strafe Right
+
+L - Inventory : Move cursor left
+R - Inventory : Move cursor right
 
 Start - Menu
 Select - Quit

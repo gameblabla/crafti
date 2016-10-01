@@ -200,7 +200,7 @@ void World::setDirty()
 
 bool World::loadFromFile(FILE *file)
 {
-    drawLoadingtext(1);
+    //drawLoadingtext(1);
 
     LOAD_FROM_FILE(*seed)
     perlin_noise.setSeed(*seed);
@@ -235,7 +235,7 @@ bool World::loadFromFile(FILE *file)
 
 bool World::saveToFile(FILE *file) const
 {
-    drawLoadingtext(1);
+    //drawLoadingtext(1);
 
     SAVE_TO_FILE(*seed)
 

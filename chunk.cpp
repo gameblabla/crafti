@@ -8,7 +8,7 @@
 #include "blockrenderer.h"
 
 //Texture with "Loading" written on it
-#include "textures/loadingtext.h"
+//#include "textures/loadingtext.h"
 
 #ifdef DEBUG
     #define debug(...) printf(__VA_ARGS__)
