@@ -16,7 +16,7 @@ all: romdisk.img ${OUTPUT}
 
 ${OUTPUT}: ${OBJS}
 	${CXX} ${CXXFLAGS} $(NAOMI) -o ${OUTPUT} ${OBJS} ${LDFLAGS} ${DEFINES} 
-	./naomibintool build CRAFTI.BIN -d "Gameblabla" -e ${OUTPUT}
+	naomibintool build CRAFTI.BIN -d "Gameblabla" -e ${OUTPUT}
 
 romdisk.img:
 	$(KOS_GENROMFS) -f romdisk.img -d ./naomi/romdisk -v
