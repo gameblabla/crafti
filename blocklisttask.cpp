@@ -97,7 +97,7 @@ void BlockListTask::render()
 	fields_x = blocklist_width / field_width;
 	fields_y = blocklist_height / field_height;
 
-    drawTextureOverlay(*blocklist_background, 0, 0, *screen, blocklist_left, blocklist_top, blocklist_background->width, blocklist_background->height);
+    //drawTextureOverlay(*blocklist_background, 0, 0, *screen, blocklist_left, blocklist_top, blocklist_background->width, blocklist_background->height);
 
     int block_nr = 0;
     int screen_x, screen_y = blocklist_top;

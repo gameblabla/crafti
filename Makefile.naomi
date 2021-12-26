@@ -1,0 +1,26 @@
+CC	= kos-cc
+CXX	= kos-c++
+CXXFLAGS = -Ofast -flto -m4-single-only -fsingle-precision-constant -ftree-vectorize -fdata-sections -ffunction-sections -fargument-noalias-global -Isrc -std=c++11  -I ngl -I. -DNAOMI
+
+LDFLAGS = -nodefaultlibs -lc -lm -Wl,--as-needed -Wl,--gc-sections -s -flto
+
+DEFINES = -Wall
+OUTPUT = crafti_NAOMI.elf
+
+NAOMI =  -ml -m4-single-only -Wl,-Ttext=0x8c020000 -Wl,--gc-sections -nodefaultlibs -L/opt/toolchains/dc/kos/lib/dreamcast -L/opt/toolchains/dc/kos/addons/lib/dreamcast -L/opt/toolchains/dc/kos/../kos-ports/lib
+
+OBJS += $(patsubst %.cpp, %.o, $(shell find . -name \*.cpp)) romdisk.o
+
+all: romdisk.img ${OUTPUT}
+
+${OUTPUT}: ${OBJS}
+	${CXX} ${CXXFLAGS} $(NAOMI) -o ${OUTPUT} ${OBJS} ${LDFLAGS} ${DEFINES} 
+
+romdisk.img:
+	$(KOS_GENROMFS) -f romdisk.img -d ./naomi/romdisk -v
+
+romdisk.o: romdisk.img
+	$(KOS_BASE)/utils/bin2o/bin2o romdisk.img romdisk romdisk.o
+	
+clean:
+	rm *.o *.img src/*.o src/sdl/*.o src/dc/*.o src/enemies/*.o ${OUTPUT} *.BIN *.iso *.mds *.mdf

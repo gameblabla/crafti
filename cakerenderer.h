@@ -3,6 +3,9 @@
 
 #include "blockrenderer.h"
 
+static constexpr GLFix cake_height = BLOCK_SIZE / 16 * 9;
+static constexpr GLFix cake_width = BLOCK_SIZE / 16 * 15;
+
 class CakeRenderer : public DumbBlockRenderer
 {
 public:
@@ -20,9 +23,6 @@ public:
 
     virtual const char* getName(const BLOCK_WDATA) override;
 
-protected:
-    static constexpr GLFix cake_height = BLOCK_SIZE / 16 * 9;
-    static constexpr GLFix cake_width = BLOCK_SIZE / 16 * 15;
 };
 
 #endif // CAKERENDERER_H

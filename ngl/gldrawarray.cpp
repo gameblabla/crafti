@@ -22,6 +22,9 @@ static bool drawTriangle(ProcessedPosition *processed, const IndexedVertex &low,
 {
     ProcessedPosition &p_low = processed[low.index], &p_middle = processed[middle.index], &p_high = processed[high.index];
 
+   if(p_low.transformed.z < GLFix(CLIP_PLANE) && p_middle.transformed.z < GLFix(CLIP_PLANE) && p_high.transformed.z < GLFix(CLIP_PLANE))
+        return true;
+
     VERTEX invisible[3];
     const IndexedVertex *visible[3];
     ProcessedPosition *p_visible[3];
@@ -130,18 +133,21 @@ void nglDrawArray(const IndexedVertex *vertices, const unsigned int count_vertic
     if(draw_mode == GL_TRIANGLES)
     {
         for(unsigned int i = 0; i < count_vertices; i += 3)
-            drawTriangle(processed, vertices[i], vertices[i + 1], vertices[i + 2], NGL_DRAW_COLOR || (vertices[0].c & TEXTURE_DRAW_BACKFACE) != TEXTURE_DRAW_BACKFACE);
+            drawTriangle(processed, vertices[i], vertices[i + 1], vertices[i + 2], !nglGetTexture() || (vertices[i].c & TEXTURE_DRAW_BACKFACE) != TEXTURE_DRAW_BACKFACE);
     }
     else if(draw_mode == GL_QUADS)
     {
         for(unsigned int i = 0; i < count_vertices; i += 4)
         {
             // Either none or both parts of a quad face the camera
-            if(drawTriangle(processed, vertices[i], vertices[i + 1], vertices[i + 2], NGL_DRAW_COLOR || (vertices[0].c & TEXTURE_DRAW_BACKFACE) != TEXTURE_DRAW_BACKFACE))
+            if(drawTriangle(processed, vertices[i], vertices[i + 1], vertices[i + 2], !nglGetTexture() || (vertices[i].c & TEXTURE_DRAW_BACKFACE) != TEXTURE_DRAW_BACKFACE))
                 drawTriangle(processed, vertices[i + 2], vertices[i + 3], vertices[i], false);
         }
     }
     else
-        throw "Not implemented";
+    {
+		return;
+	}
+       // throw "Not implemented";
 }
 

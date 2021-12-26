@@ -13,7 +13,7 @@ Inventory::Inventory()
 
 void Inventory::draw(TEXTURE &tex)
 {
-    drawTextureOverlay(inventory, 0, 0, tex, (SCREEN_WIDTH - inventory.width) / 2, SCREEN_HEIGHT - inventory.height, inventory.width, inventory.height);
+    //drawTextureOverlay(inventory, 0, 0, tex, (SCREEN_WIDTH - inventory.width) / 2, SCREEN_HEIGHT - inventory.height, inventory.width, inventory.height);
     for(unsigned int i = 0; i < 5; ++i)
     {
         const BLOCK_WDATA block = entries[i];

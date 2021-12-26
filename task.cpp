@@ -7,6 +7,15 @@
 #include "inventory.h"
 
 #include <SDL.h>
+#include <kos.h>
+
+maple_device_t *cont;
+cont_state_t *state;
+
+#define LEFT_PRESSED (state->buttons & CONT_DPAD_LEFT)
+#define RIGHT_PRESSED (state->buttons & CONT_DPAD_RIGHT)
+#define UP_PRESSED (state->buttons & CONT_DPAD_UP)
+#define DOWN_PRESSED (state->buttons & CONT_DPAD_DOWN)
 
 //The values have to stay somewhere
 Task *Task::current_task;
@@ -21,55 +30,57 @@ void Task::makeCurrent()
 
 bool Task::keyPressed(int key)
 {
-#ifdef _TINSPIRE
+	cont  = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
+	state = (cont_state_t *) maple_dev_status(cont);
 
-#else
-	struct j
+	switch (key)
 	{
-		int x;
-		int y;
-	} joy_cord[2];
-	SDL_Event event;
-	SDL_Joystick *joy;
-	Uint8 *keystate = SDL_GetKeyState(NULL);
-	
-	if (SDL_NumJoysticks() > 0) 
-	{
-		joy = SDL_JoystickOpen(0);
-		joy_cord[0].x = SDL_JoystickGetAxis(joy, 0);
-		joy_cord[0].y = SDL_JoystickGetAxis(joy, 1);
-	}
-	
-	SDL_JoystickUpdate();
-	SDL_PollEvent(&event);
-	
-	if (key == 555 || key == 556 || key == SDLK_LEFT || key==SDLK_RIGHT)
-	{
-		if (joy_cord[0].x < -8000 && key == SDLK_LEFT)
-		{
+		case 556:
+		// Analog Up Stick
+		if(state->joyy < -64)
 			return true;
-		}
-		else if (joy_cord[0].x > 8000 && key == SDLK_RIGHT)
-		{
+		break;
+		case 557:
+		// Analog Down Stick
+		if(state->joyy > 64)
 			return true;
-		}
+		break;
 		
-		if (joy_cord[0].y < -8000 && key == 555)
-		{
+		case 600:
+		// L
+		if(state->ltrig > 64)
 			return true;
-		}
-		else if (joy_cord[0].y > 8000 && key == 556)
-		{
+		break;
+		case 601:
+		// R
+		if(state->rtrig > 64)
 			return true;
-		}
+		break;
+		
+		case CONT_DPAD_LEFT:
+		// Analog Left Stick
+		if(state->joyx < -64)
+			return true;
+		else if ((state->buttons & key))
+			return true;	
+		break;
+		case CONT_DPAD_RIGHT:
+		// Analog Right Stick
+		if(state->joyx > 64)
+			return true;
+		else if ((state->buttons & key))
+			return true;	
+		break;
+		
+		default:
+		if ((state->buttons & key))
+			return true;
+		break;
 	}
 	
-	if (keystate[key])
-	{
-		return true;
-	}
+
+	
 	return false;
-#endif
 }
 
 void Task::initializeGlobals(const char *savefile)
@@ -96,7 +107,6 @@ void Task::deinitializeGlobals()
 void Task::saveBackground()
 {
     copyTexture(*screen, *background);
-
     background_saved = true;
 }
 
@@ -112,7 +122,7 @@ static constexpr int savefile_version = 5;
 
 bool Task::load()
 {
-    FILE *file = fopen(savefile, "rb");
+   /* FILE *file = fopen(savefile, "rb");
     if(!file)
         return false;
 
@@ -148,12 +158,13 @@ bool Task::load()
 
     fclose(file);
 
-    return ret;
+    return ret;*/
+        return false;
 }
 
 bool Task::save()
 {
-    FILE *file = fopen(savefile, "wb");
+   /* FILE *file = fopen(savefile, "wb");
     if(!file)
         return false;
 
@@ -176,5 +187,6 @@ bool Task::save()
 
     fclose(file);
 
-    return ret;
+    return ret;*/
+    return false;
 }

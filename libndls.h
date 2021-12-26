@@ -6,6 +6,7 @@
 
     #include <stdint.h>
     #include <SDL.h>
+    #include <kos.h>
 
     typedef enum {
         SCR_TYPE_INVALID=-1,
@@ -71,33 +72,35 @@
     #define _KEY_DUMMY_ROW 0x1C
     #define _KEY_DUMMY_COL 0x400
     
-    #define KEY_NSPIRE_8 SDLK_UP
-    #define KEY_NSPIRE_2 SDLK_DOWN
+    #define KEY_NSPIRE_8 CONT_DPAD_UP
+    #define KEY_NSPIRE_2 CONT_DPAD_DOWN
    
 	/*#define KEY_NSPIRE_4 SDLK_TAB
     #define KEY_NSPIRE_6 SDLK_BACKSPACE*/
 	#define KEY_NSPIRE_4 0
     #define KEY_NSPIRE_6 0
-    #define KEY_NSPIRE_3 SDLK_BACKSPACE
-    #define KEY_NSPIRE_1 SDLK_TAB
+   /* #define KEY_NSPIRE_3 SDLK_BACKSPACE
+    #define KEY_NSPIRE_1 SDLK_TAB*/
+	#define KEY_NSPIRE_3 601
+    #define KEY_NSPIRE_1 600
     
-	#define KEY_NSPIRE_PERIOD SDLK_LSHIFT
+	#define KEY_NSPIRE_PERIOD CONT_START
     
-    #define KEY_NSPIRE_UP 555
-    #define KEY_NSPIRE_DOWN 556
+    #define KEY_NSPIRE_UP 556
+    #define KEY_NSPIRE_DOWN 557
     
-    #define KEY_NSPIRE_LEFT SDLK_LEFT
-    #define KEY_NSPIRE_RIGHT SDLK_RIGHT
+    #define KEY_NSPIRE_LEFT CONT_DPAD_LEFT
+    #define KEY_NSPIRE_RIGHT CONT_DPAD_RIGHT
      
-    #define KEY_NSPIRE_DOC SDLK_SPACE
-    #define KEY_NSPIRE_5 SDLK_SPACE
-    #define KEY_NSPIRE_CLICK SDLK_LCTRL
+    #define KEY_NSPIRE_DOC CONT_X
+    #define KEY_NSPIRE_5 0
+    #define KEY_NSPIRE_CLICK CONT_A
     
-    #define KEY_NSPIRE_ESC SDLK_ESCAPE
-    #define KEY_NSPIRE_MENU SDLK_RETURN
+    #define KEY_NSPIRE_ESC 0
+    #define KEY_NSPIRE_MENU 1
 
-    #define KEY_NSPIRE_7 SDLK_LCTRL
-    #define KEY_NSPIRE_9 SDLK_LALT
+    #define KEY_NSPIRE_7 CONT_A
+    #define KEY_NSPIRE_9 CONT_B
     
     #define KEY_NSPIRE_MINUS 0
     #define KEY_NSPIRE_PLUS 0

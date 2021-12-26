@@ -10,7 +10,7 @@
         void nglDrawTriangleXZClipped(const VERTEX *low, const VERTEX *middle, const VERTEX *high)
         {
             #ifdef TEXTURE_SUPPORT
-                if(force_color)
+                if(!texture)
                     return nglDrawTriangleXZClippedForceColor(low, middle, high);
 
                 if(__builtin_expect((low->c & TEXTURE_TRANSPARENT) == TEXTURE_TRANSPARENT, 0))
@@ -18,6 +18,10 @@
             #endif
     #endif
 #endif
+    if((low->y < GLFix(0) && middle->y < GLFix(0) && high->y < GLFix(0))
+        || (low->y >= GLFix(SCREEN_HEIGHT) && middle->y >= GLFix(SCREEN_HEIGHT) && high->y >= GLFix(SCREEN_HEIGHT)))
+        return;
+
     if(middle->y > high->y)
         std::swap(middle, high);
 
@@ -189,11 +193,8 @@
             decltype(screen) screen_buf = screen_buf_line + x1;
             for(int x = x1; x <= x2; x += 1, ++z_buf, ++screen_buf)
             {
-                if(__builtin_expect(*z_buf > z, true))
+                if(__builtin_expect(GLFix(*z_buf) > z, true))
                 {
-                    #ifndef TRANSPARENCY
-                        *z_buf = z;
-                    #endif
                     #ifdef TEXTURE_SUPPORT
                         COLOR c = loc_texture.bitmap[u.floor() + v.floor()*loc_texture.width];
                         #ifdef TRANSPARENCY
@@ -204,11 +205,14 @@
                             }
                         #else
                             *screen_buf = c;
+                            *z_buf = z;
                         #endif
                     #elif defined(INTERPOLATE_COLORS)
                         *screen_buf = colorRGB(r, g, b);
+                        *z_buf = z;
                     #else
                         *screen_buf = low->c;
+                        *z_buf = z;
                     #endif
                 }
 
@@ -292,11 +296,8 @@
             decltype(screen) screen_buf = screen_buf_line + x1;
             for(int x = x1; x <= x2; x += 1, ++z_buf, ++screen_buf)
             {
-                if(__builtin_expect(*z_buf > z, true))
+                if(__builtin_expect(GLFix(*z_buf) > z, true))
                 {
-                    #ifndef TRANSPARENCY
-                        *z_buf = z;
-                    #endif
                     #ifdef TEXTURE_SUPPORT
                         COLOR c = loc_texture.bitmap[u.floor() + v.floor()*loc_texture.width];
                         #ifdef TRANSPARENCY
@@ -307,11 +308,14 @@
                             }
                         #else
                             *screen_buf = c;
+                            *z_buf = z;
                         #endif
                     #elif defined(INTERPOLATE_COLORS)
                         *screen_buf = colorRGB(r, g, b);
+                        *z_buf = z;
                     #else
                         *screen_buf = low->c;
+                        *z_buf = z;
                     #endif
                 }
 
