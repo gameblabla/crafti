@@ -16,3 +16,4 @@ romdisk
 *.wav
 *.raw
 *.img
+*.BIN
