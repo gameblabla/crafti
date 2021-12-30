@@ -17,3 +17,10 @@ romdisk
 *.raw
 *.img
 *.BIN
+cd/*.wav
+*.zip
+*.TXT
+*.txt
+*.cdi
+*.bin
+*.BIN

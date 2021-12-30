@@ -9,8 +9,6 @@
 #include <SDL.h>
 #include <kos.h>
 
-maple_device_t *cont;
-cont_state_t *state;
 
 #define LEFT_PRESSED (state->buttons & CONT_DPAD_LEFT)
 #define RIGHT_PRESSED (state->buttons & CONT_DPAD_RIGHT)
@@ -28,57 +26,137 @@ void Task::makeCurrent()
     current_task = this;
 }
 
+mouse_state_t *mstate;
+maple_device_t *cont, *kbd,  *mouse;
+cont_state_t *state;	
+kbd_state_t* first_kbd_state; 
+
+extern int rv;
+extern unsigned char key_g[5];
+
 bool Task::keyPressed(int key)
 {
-	cont  = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
-	state = (cont_state_t *) maple_dev_status(cont);
-
-	switch (key)
+	if (state)
 	{
-		case 556:
-		// Analog Up Stick
-		if(state->joyy < -64)
-			return true;
-		break;
-		case 557:
-		// Analog Down Stick
-		if(state->joyy > 64)
-			return true;
-		break;
-		
-		case 600:
-		// L
-		if(state->ltrig > 64)
-			return true;
-		break;
-		case 601:
-		// R
-		if(state->rtrig > 64)
-			return true;
-		break;
-		
-		case CONT_DPAD_LEFT:
-		// Analog Left Stick
-		if(state->joyx < -64)
-			return true;
-		else if ((state->buttons & key))
-			return true;	
-		break;
-		case CONT_DPAD_RIGHT:
-		// Analog Right Stick
-		if(state->joyx > 64)
-			return true;
-		else if ((state->buttons & key))
-			return true;	
-		break;
-		
-		default:
-		if ((state->buttons & key))
-			return true;
-		break;
+		switch (key)
+		{
+			case 556:
+			// Analog Up Stick
+			if(state->joyy < -64)
+				return true;
+			break;
+			case 557:
+			// Analog Down Stick
+			if(state->joyy > 64)
+				return true;
+			break;
+				
+			case CONT_DPAD_LEFT:
+				// Analog Left Stick
+				if(state->joyx < -64)
+					return true;
+				else if ((state->buttons & key))
+					return true;	
+				break;
+				case CONT_DPAD_RIGHT:
+				// Analog Right Stick
+				if(state->joyx > 64)
+					return true;
+				else if ((state->buttons & key))
+					return true;	
+				break;
+				
+				case 600:
+				// L
+				if(state->ltrig > 64)
+					return true;
+				break;
+				case 601:
+				// R
+				if(state->rtrig > 64)
+					return true;
+				break;
+				
+				default:
+				if ((state->buttons & key))
+					return true;
+				break;
+		}
 	}
 	
-
+	if (mstate)
+	{
+			if (mstate->dy < -1)
+			{
+				if (key == 556) return true;
+			}
+			else if (mstate->dy > 1)
+			{
+				if (key == 557) return true;
+			}
+			
+			if (mstate->dx < -1)
+			{
+				if (key == KEY_NSPIRE_LEFT) return true;
+			}
+			else if (mstate->dx > 1)
+			{
+				if (key == KEY_NSPIRE_RIGHT) return true;
+			}
+			
+			if (mstate->buttons & MOUSE_LEFTBUTTON)
+			{
+				if (key == KEY_NSPIRE_CLICK) return true;
+			}
+			if (mstate->buttons & MOUSE_RIGHTBUTTON)
+			{
+				if (key == KEY_NSPIRE_9) return true;
+			}
+	}
+	
+	if (first_kbd_state)
+	{
+		if (rv > -1)
+		{
+			switch(rv)
+			{
+				case 19200:
+					if (key == 600) return true;
+				break;
+				case 19968:
+					if (key == 601) return true;
+				break;
+					
+				case 106: // J
+				case 120: // X
+					if (key == CONT_A) return true;
+				break;
+					
+				case 107: // K
+				case 99: // C
+					if (key == CONT_B) return true;
+				break;
+					
+				case 108: // L
+				case 118: // V
+					if (key == CONT_X) return true;
+				break;
+					
+				case 10: // Return
+				case 27: // ESC
+					if (key == CONT_START) return true;
+				break;
+					
+				default:
+				break;
+			}
+		}
+		
+		if (key_g[3] == 1 && key == CONT_DPAD_UP) return true;
+		if (key_g[2] == 1 && key == CONT_DPAD_DOWN) return true;
+		if (key_g[1] == 1 && key == CONT_DPAD_LEFT) return true;
+		if (key_g[0] == 1 && key == CONT_DPAD_RIGHT) return true;
+	}
 	
 	return false;
 }

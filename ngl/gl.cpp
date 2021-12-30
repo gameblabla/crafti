@@ -231,12 +231,21 @@ void nglSetBuffer(COLOR *screenBuf)
 	screen = screenBuf;
 }
 
+extern mouse_state_t *mstate;
+extern maple_device_t *cont, *kbd,  *mouse;
+extern cont_state_t *state;	
+extern kbd_state_t* first_kbd_state; 
+int rv;
+unsigned char key_g[5];
+
 void nglDisplay()
 {
+	int i,k;
+	int exit = 0;
     #ifdef _TINSPIRE
         if(is_monochrome)
         {
-            //Flip everything, as 0xFFFF is white on CX, but black on classic
+            //Flip everything, as 0xFFFF is white on CX, but black on classicz
             COLOR *ptr = screen + SCREEN_HEIGHT*SCREEN_WIDTH, *ptr_inv = screen_inverted + SCREEN_HEIGHT*SCREEN_WIDTH;
             while(--ptr >= screen)
                 *--ptr_inv = ~*ptr;
@@ -246,11 +255,11 @@ void nglDisplay()
         else
             lcd_blit(screen, SCR_320x240_565);
     #else
-		sq_cpy(vram_l, screen, 153600);
-		/*dcache_flush_range(*screen,153600);
+		//memcpy(vram_s, screen, 153600);
+		//sq_cpy(vram_l, screen, 153600);
+		dcache_flush_range((uint32_t)screen,153600);
 		while (!pvr_dma_ready());
-		pvr_dma_transfer((uint16_t*)screen, vram_s, 153600,PVR_DMA_VRAM32,-1,NULL,NULL);*/
-		//memcpy(vram_s, screen, 153600);//
+		pvr_dma_transfer(screen, (uint32_t)vram_l, 153600,PVR_DMA_VRAM32,-1,NULL,NULL);
         /*SDL_LockSurface(scr);
         memcpy(scr->pixels, screen, 153600);
         SDL_UnlockSurface(scr);
@@ -271,6 +280,46 @@ void nglDisplay()
             frames = 0;
         }
     #endif
+    
+	/* No need to check again if pointer exists. */
+	if (!cont)
+	{
+		for(i=0;i<4;i++)
+		{
+			cont = maple_enum_type(i, MAPLE_FUNC_CONTROLLER);
+			if (cont) break;
+		}
+	}
+	if (!kbd)
+	{
+		for(i=0;i<4;i++)
+		{
+			kbd = maple_enum_type(i, MAPLE_FUNC_KEYBOARD);
+			if (kbd) break;
+		}
+	}
+	if (!mouse)
+	{
+		for(i=0;i<4;i++)
+		{
+			mouse = maple_enum_type(i, MAPLE_FUNC_MOUSE);
+			if (mouse) break;
+		}
+	}
+	
+	if(cont) state = (cont_state_t *)maple_dev_status(cont);
+	if(mouse) mstate = (mouse_state_t *)maple_dev_status(mouse);
+	if (kbd)
+	{
+		first_kbd_state = (kbd_state_t *) maple_dev_status(kbd);
+		rv = kbd_queue_pop(kbd, 1);
+		memset(key_g, 0, 4);
+		// There are 255 in total but we only care for some of them (cursor keys)
+		for(i=79;i<83;i++)
+		{
+			if (first_kbd_state->matrix[i] == 1) key_g[i-79] = 1;
+		}
+	}
 }
 
 void nglRotateX(const GLFix a)

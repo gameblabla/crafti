@@ -20,7 +20,15 @@ pack:
 	${KOS_BASE}/utils/scramble/scramble main.bin ./cd/1ST_READ.BIN
 	makeip ip.txt IP.BIN
 	mkisofs -C 0,$(shell lbacalc track1.raw) -V CRAFTI -G IP.BIN -joliet -rock -l -o "crafti.iso" ./cd
-	mds4dc -c disc.mds crafti.iso track1.raw
+	mds4dc -c crafti.mds crafti.iso track1.raw
+	
+pack_emu:
+	rm -f IP.BIN
+	sh-elf-objcopy -R .stack -O binary hcl.elf main.bin
+	${KOS_BASE}/utils/scramble/scramble main.bin ./cd/1ST_READ.BIN
+	makeip ip.txt IP.BIN
+	mkisofs -V crafti -G IP.BIN -joliet -rock -l -x cd -o "crafti.iso" ./cd
+	cdi4dc crafti.iso crafti.cdi -d
 
 	
 clean:
