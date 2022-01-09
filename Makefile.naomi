@@ -1,7 +1,7 @@
 CC	= kos-cc
 CXX	= kos-c++
 SH_DIRECTORY=/opt/toolchains/dc/sh-elf/bin/
-CXXFLAGS = -Ofast -flto -m4-single-only -fsingle-precision-constant -ftree-vectorize -fdata-sections -ffunction-sections -fargument-noalias-global -Isrc -std=c++11  -I ngl -I. -DNAOMI
+CXXFLAGS = -Ofast -flto -m4-single-only -fsingle-precision-constant -ftree-vectorize -fdata-sections -ffunction-sections -fargument-noalias-global -Isrc -std=c++11  -I ngl -I. -DNAOMI -Idreamcast
 
 LDFLAGS = -nodefaultlibs -lc -lm -Wl,--as-needed -Wl,--gc-sections -s -flto
 
@@ -10,7 +10,13 @@ OUTPUT = CRAFTI.ELF
 
 NAOMI =  -ml -m4-single-only -Wl,-Ttext=0x8c020000 -Wl,--gc-sections -nodefaultlibs -L/opt/toolchains/dc/kos/lib/dreamcast -L/opt/toolchains/dc/kos/addons/lib/dreamcast -L/opt/toolchains/dc/kos/../kos-ports/lib
 
-OBJS += $(patsubst %.cpp, %.o, $(shell find . -name \*.cpp)) romdisk.o
+SRCDIR		= ./ ./dreamcast ./ngl
+VPATH		= $(SRCDIR)
+SRC_C		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
+SRC_CP		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.cpp))
+OBJ_C		= $(notdir $(patsubst %.c, %.o, $(SRC_C)))
+OBJ_CP		= $(notdir $(patsubst %.cpp, %.o, $(SRC_CP)))
+OBJS		= $(OBJ_C) $(OBJ_CP) romdisk.o
 
 all: romdisk.img ${OUTPUT}
 

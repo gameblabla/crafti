@@ -5,6 +5,7 @@
 #include "worldtask.h"
 
 #include "textures/selection.h"
+#include "glconfig.h"
 
 SettingsTask settings_task;
 
@@ -34,7 +35,7 @@ SettingsTask::SettingsTask()
     //Must have the same order as the "Settings" enum
     settings.push_back({"Leaves", leaves_values, 2, 1, 0, 1});
     settings.push_back({"Speed", speed_values, 3, 1, 0, 1});
-    settings.push_back({"Distance", nullptr, 10, 2, 1, 1});
+    settings.push_back({"Distance", nullptr, DEFAULT_DRAW_DISTANCE, 2, 1, 1});
     settings.push_back({"Fast mode", fastmode_values, 2, 0, 0, 1});
     settings.push_back({"Near plane", nullptr, 500, 256, 120, 16});
     settings.push_back({"World", world_static_values, 2, 1, 0, 1});

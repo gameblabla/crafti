@@ -7,7 +7,7 @@ HelpTask help_task;
 
 HelpTask::HelpTask()
 {
-    background = newTexture(background_width, background_height, 0, false);
+    background = newTexture(background_width_help, background_height_help, 0, false);
 }
 
 HelpTask::~HelpTask()

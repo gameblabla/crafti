@@ -1,0 +1,17 @@
+XBE_TITLE = crafti
+GEN_XISO = $(XBE_TITLE).iso
+
+CXXFLAGS += -I ngl -I. -Ixbox -DXBOX -ftree-vectorize -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -O3 -fno-common -fomit-frame-pointer -pipe -march=pentium3 -mtune=pentium3 -msse -flto  -s
+LDFLAGS += -flto -s -Wl,--gc-sections
+OUTPUT = crafti.elf
+
+NXDK_CXX = y
+NXDK_SDL = y
+
+SRCDIR		= ./ ./xbox ./ngl
+VPATH		= $(SRCDIR)
+SRCS		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
+SRCS		+= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.cpp))
+
+include $(NXDK_DIR)/Makefile
+

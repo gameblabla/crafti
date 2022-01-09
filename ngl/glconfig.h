@@ -27,3 +27,10 @@
 #define CLIP_PLANE 25
 
 #define MATRIX_STACK_SIZE 10
+
+
+#ifdef XBOX
+#define DEFAULT_DRAW_DISTANCE 20
+#else
+#define DEFAULT_DRAW_DISTANCE 10
+#endif

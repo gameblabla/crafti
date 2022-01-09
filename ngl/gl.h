@@ -13,8 +13,13 @@
 //These values are used to calculate offsets into the buffer.
 //If you want something like FBOs, make them variables and set them accordingly.
 //Watch out for different buffer sizes!
+#ifdef XBOX
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
+#else
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
+#endif
 
 //GLFix is an integral part of all calculations.
 //Changing resolution and width may be an improvement or even break everything.

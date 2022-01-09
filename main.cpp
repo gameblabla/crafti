@@ -3,17 +3,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#ifdef DREAMCAST
 #include <kos.h>
+#endif
 #include "gl.h"
 #include "terrain.h"
 #include "worldtask.h"
 #include "settingstask.h"
 #include "sound.h"
 
+#ifdef DREAMCAST
 KOS_INIT_FLAGS(INIT_DEFAULT | INIT_MALLOCSTATS);
 #ifdef NAOMI
 extern uint8 romdisk[];
 KOS_INIT_ROMDISK(romdisk);
+#endif
 #endif
 
 /*

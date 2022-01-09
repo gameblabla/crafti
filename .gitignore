@@ -24,3 +24,15 @@ cd/*.wav
 *.cdi
 *.bin
 *.BIN
+*.obj
+*.d
+*.D
+*.iso
+*.ISO
+./bin
+*.xbe
+*.XBE
+*.exe
+*.EXE
+*.cpp.d
+*.c.d

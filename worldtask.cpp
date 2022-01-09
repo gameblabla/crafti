@@ -319,8 +319,10 @@ void WorldTask::logic()
 
         key_held_down = true;
     }
+   
     else if(keyPressed(KEY_NSPIRE_PERIOD)) //Open list of blocks (or take screenshot with Ctrl + .)
     {
+		 #if 0 // Gameblabla
         if(keyPressed(KEY_NSPIRE_CTRL))
         {
             //Find a filename that doesn't exist
@@ -345,6 +347,7 @@ void WorldTask::logic()
             }
         }
         else
+		#endif
             block_list_task.makeCurrent();
 
         key_held_down = true;
