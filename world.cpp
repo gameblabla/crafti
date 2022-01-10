@@ -26,7 +26,9 @@ void World::generateSeed()
     unsigned int *old_seed = seed;
     seed = static_cast<unsigned int*>(malloc(sizeof(*seed)));
     free(old_seed);
+    #ifdef DEBUG
     printf("Seed: %d\n", *seed);
+    #endif
     perlin_noise.setSeed(*seed);
 }
 

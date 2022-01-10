@@ -140,7 +140,8 @@ void WorldTask::logic()
         can_jump = false;
     }
 
-    if(has_touchpad)
+	/* Leaks memory apparently - Gameblabla Add strafing later */
+    /*if(has_touchpad)
     {
         touchpad_report_t touchpad;
         touchpad_scan(&touchpad);
@@ -189,7 +190,7 @@ void WorldTask::logic()
         tp_last_x = touchpad.x;
         tp_last_y = touchpad.y;
     }
-    else
+    else*/
     {
         if(keyPressed(KEY_NSPIRE_UP))
             xr -= speed()/3;

@@ -15,10 +15,19 @@
 #include <gsKit.h>
 #include <dmaKit.h>
 #include <malloc.h>
-
 #include <gsToolkit.h>
+#include <tamtypes.h>
+#include <kernel.h>
+#include <sifrpc.h>
+#include <loadfile.h>
+#include <stdio.h>
+#include <libpad.h>
 
-#define DEAD_ZONE 16000
+/*
+ * Global var's
+ */
+
+#define DEAD_ZONE 4
 
 #include "gl.h"
 #include "fastmath.h"
@@ -32,14 +41,15 @@ MATRIX *transformation;
 static COLOR color;
 static GLFix u, v;
 static COLOR *screen;
+GSTEXTURE bigtex;
+
 static uint16_t *z_buffer;
 static GLFix near_plane = 256;
 static const TEXTURE *texture;
 static unsigned int vertices_count = 0;
 static VERTEX vertices[4];
 static GLDrawMode draw_mode = GL_TRIANGLES;
-static bool is_monochrome;
-//static COLOR *screen_inverted; //For monochrome calcs
+
 #ifdef FPS_COUNTER
     volatile unsigned int fps;
 #endif
@@ -47,24 +57,84 @@ static bool is_monochrome;
     static int matrix_stack_left = MATRIX_STACK_SIZE;
 #endif
 
-GSTEXTURE bigtex;
+
 GSGLOBAL *gsGlobal;
+
+struct padButtonStatus buttons;
+u32 paddata;
+u32 old_pad = 0;
+u32 new_pad;
+static char padBuf[256] __attribute__((aligned(64))); 
+
+static void loadModules(void)
+{
+    int ret;
+    ret = SifLoadModule("rom0:SIO2MAN", 0, NULL);
+    if (ret < 0)
+    {
+		printf("sifLoadModule sio failed: %d\n", ret);
+		SleepThread();
+    }
+    ret = SifLoadModule("rom0:PADMAN", 0, NULL);
+    if (ret < 0)
+    {
+		printf("sifLoadModule pad failed: %d\n", ret);
+		SleepThread();
+    }
+}
+
+void waitPadReady(int port, int slot)
+{
+    // todo check for PAD_STATE_DISCONN
+    int state = 0;
+    do
+    {
+        state=padGetState(port, slot);
+    }
+    while((state != PAD_STATE_STABLE) && (state != PAD_STATE_FINDCTP1));
+} 
 
 void nglInit()
 {
-	gsGlobal = gsKit_init_global();
+    int port = 0; // 0 -> Connector 1, 1 -> Connector 2
+    int slot = 0; // Always zero if not using multitap
+    #ifdef PS2_720P
+    int iPassCount = 3;
+    #endif
+    
+    /* All of this block of code is for the controller */
+	SifInitRpc(0);
+	loadModules();
+	padInit(0); 
+	padPortOpen(port, slot, padBuf);
+    waitPadReady(port, slot);
+    // When using MMODE_LOCK, user cant change mode with Select button
+    padSetMainMode(port, slot, PAD_MMODE_DUALSHOCK, PAD_MMODE_LOCK);
+    waitPadReady(port, slot);       
+    padEnterPressMode(port, slot); 
 	
-	gsGlobal->Mode = GS_MODE_DTV_480P;
+	#ifdef PS2_720P
+	gsGlobal = gsKit_hires_init_global();
+	gsGlobal->Mode = GS_MODE_DTV_720P;
+	gsGlobal->Width = 1280;
+	gsGlobal->Height = 720;
+	gsGlobal->DoubleBuffering = GS_SETTING_OFF;
+	#else
+	gsGlobal = gsKit_init_global();
+	gsGlobal->Mode = GS_MODE_NTSC;
+	gsGlobal->Width = 320;
+	gsGlobal->Height = 240;
+	gsGlobal->DoubleBuffering = GS_SETTING_ON;
+	#endif
+
 	gsGlobal->Interlace = GS_NONINTERLACED;
 	gsGlobal->Field = GS_FRAME;
-	gsGlobal->Width = SCREEN_WIDTH;
-	gsGlobal->Height = SCREEN_HEIGHT;
 
 	gsGlobal->PSM  = GS_PSM_CT16;
 	gsGlobal->PSMZ = GS_PSMZ_16;
 	gsGlobal->Dithering = GS_SETTING_OFF;
-	gsGlobal->DoubleBuffering = GS_SETTING_OFF;
 	gsGlobal->ZBuffering = GS_SETTING_OFF;
+	
 	gsGlobal->StartX = 0;
 	gsGlobal->StartY = 0;
 	
@@ -73,7 +143,11 @@ void nglInit()
 	// Initialize the DMAC
 	dmaKit_chan_init(DMA_CHANNEL_GIF);
 
+	#ifdef PS2_720P
+	gsKit_hires_init_screen(gsGlobal, iPassCount);
+	#else
 	gsKit_init_screen(gsGlobal);
+	#endif
 	gsKit_mode_switch(gsGlobal, GS_PERSISTENT);
 
 	// Internal resolution
@@ -81,19 +155,36 @@ void nglInit()
 	bigtex.Height = SCREEN_HEIGHT;
 	bigtex.PSM = GS_PSM_CT16;
 	bigtex.Filter = GS_FILTER_NEAREST;
-	bigtex.Mem = (u32 *)screen;
+	
+	//bigtex.Mem = (u32 *)memalign(128, gsKit_texture_size_ee(bigtex.Width, bigtex.Height, bigtex.PSM));
 	bigtex.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(bigtex.Width, bigtex.Height, bigtex.PSM), GSKIT_ALLOC_USERBUFFER);
-
+	
 	gsKit_set_clamp(gsGlobal, GS_CMODE_CLAMP);
 	gsKit_clear(gsGlobal, 0x00000000);
+	
+	//screen = bigtex.Mem;
+	gsKit_setup_tbw(&bigtex);
+	
+	gsKit_prim_sprite_texture(gsGlobal, &bigtex, 0.0f,  // X1
+		0.0f,  // Y2
+		0.0f,  // U1
+		0.0f,  // V1
+		(float)gsGlobal->Width, // X2
+		(float)gsGlobal->Height, // Y2
+		(float)gsGlobal->Width, // U2
+		(float)gsGlobal->Height, // V2
+		0,
+		0x80808080);
 
 	memset(pad_game, 0, 14);
 	
     init_fastmath();
-    transformation = new MATRIX[MATRIX_STACK_SIZE];
-
+    
     //C++ <3
+    transformation = new MATRIX[MATRIX_STACK_SIZE];
+    
     z_buffer = new std::remove_reference<decltype(*z_buffer)>::type[SCREEN_WIDTH*SCREEN_HEIGHT];
+    
     glLoadIdentity();
     color = colorRGB(0, 0, 0); //Black
     u = v = 0;
@@ -112,17 +203,6 @@ void nglUninit()
     uninit_fastmath();
     delete[] transformation;
     delete[] z_buffer;
-
-    
-
-    #ifdef _TINSPIRE
-		delete[] screen_inverted;
-        lcd_init(SCR_TYPE_INVALID);
-    #else
-		/*if (scr) SDL_FreeSurface(scr);
-		SDL_Quit();*/
-        //TODO
-    #endif
 }
 
 void nglMultMatMat(MATRIX *mat1, MATRIX *mat2)
@@ -255,43 +335,24 @@ void nglPerspective(VECTOR3 *v)
     v->y = GLFix(SCREEN_HEIGHT - 1) - v->y;
 }
 
-void nglSetBuffer(COLOR *screenBuf)
+void nglSetBuffer(COLOR* screenBuf)
 {
 	screen = screenBuf;
+	bigtex.Mem = (u32*)screen;
+	
 }
 
 void nglDisplay()
 {
-	int i,k;
-	int exit = 0;
-    #ifdef _TINSPIRE
-        if(is_monochrome)
-        {
-            //Flip everything, as 0xFFFF is white on CX, but black on classicz
-            COLOR *ptr = screen + SCREEN_HEIGHT*SCREEN_WIDTH, *ptr_inv = screen_inverted + SCREEN_HEIGHT*SCREEN_WIDTH;
-            while(--ptr >= screen)
-                *--ptr_inv = ~*ptr;
-
-            lcd_blit(screen_inverted, SCR_320x240_16);
-        }
-        else
-            lcd_blit(screen, SCR_320x240_565);
-    #else
-		bigtex.Mem = (u32 *)screen;
-		gsKit_texture_upload(gsGlobal, &bigtex);
-		gsKit_prim_sprite_texture(gsGlobal, &bigtex, 0.0f,  // X1
-			0.0f,  // Y2
-			0.0f,  // U1
-			0.0f,  // V1
-			gsGlobal->Width, // X2
-			gsGlobal->Height, // Y2
-			gsGlobal->Width, // U2
-			gsGlobal->Height, // V2
-			0,
-			0x80808080);
-		gsKit_queue_exec(gsGlobal);
-		gsKit_sync_flip(gsGlobal);
-    #endif
+	int ret;
+	gsKit_texture_send(bigtex.Mem, bigtex.Width, bigtex.Height, bigtex.Vram, bigtex.PSM, bigtex.TBW, GS_CLUT_NONE);
+#ifdef PS2_720P
+	gsKit_hires_sync(gsGlobal);
+	gsKit_hires_flip(gsGlobal);
+#else
+	gsKit_queue_exec(gsGlobal);
+	gsKit_sync_flip(gsGlobal);
+#endif
 
     #ifdef FPS_COUNTER
         static unsigned int frames = 0;
@@ -307,8 +368,45 @@ void nglDisplay()
             frames = 0;
         }
     #endif
-    
+	
+
+	ret = padRead(0, 0, &buttons); // port, slot, buttons
+	if (ret != 0)
+	{
+		paddata = 0xffff ^ buttons.btns;
+		
+		new_pad = paddata & ~old_pad;
+		old_pad = paddata;
+		
+		memset(pad_game, 0, 14);
+		
+		int ljoy_h = buttons.ljoy_h - 128;
+		int ljoy_v = buttons.ljoy_v - 128;
+		int rjoy_h = buttons.rjoy_h - 128;
+		int rjoy_v = buttons.rjoy_v - 128;
+	
+		if (ljoy_v < -DEAD_ZONE) pad_game[0] = 1;
+		else if (ljoy_v > DEAD_ZONE) pad_game[0] = 2;
+		else pad_game[0] = 0;
+
+		if (ljoy_h < -DEAD_ZONE || rjoy_h < -DEAD_ZONE) pad_game[1] = 1;
+		else if (ljoy_h > DEAD_ZONE || rjoy_h > DEAD_ZONE) pad_game[1] = 2;
+		else pad_game[1] = 0;
 			
+		if (rjoy_v < -DEAD_ZONE) pad_game[2] = 1;
+		else if (rjoy_v > DEAD_ZONE) pad_game[2] = 2;
+		else pad_game[2] = 0;
+
+		if (new_pad & PAD_CROSS) pad_game[8] = 1;
+		if (new_pad & PAD_CIRCLE) pad_game[9] = 1;
+			
+		if (new_pad & PAD_SQUARE) pad_game[10] = 1;
+			
+		if (new_pad & PAD_START) pad_game[11] = 1;
+
+		if (new_pad & PAD_L1) pad_game[12] = 1;
+		else if (new_pad & PAD_R1) pad_game[12] = 2;
+	}
 }
 
 void nglRotateX(const GLFix a)
@@ -359,28 +457,37 @@ void nglRotateZ(const GLFix a)
     nglMultMatMat(transformation, &rot);
 }
 
+
+#define pixel(x,y,z,c) z_buffer[x + y*SCREEN_WIDTH] = z; screen[x + y*SCREEN_WIDTH] = c;
+
+/*
 inline void pixel(const int x, const int y, const GLFix z, const COLOR c)
 {
-    if(x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
+	if(x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
         return;
 
     const int pitch = x + y*SCREEN_WIDTH;
 
-    if(z <= GLFix(CLIP_PLANE) || GLFix(z_buffer[pitch]) <= z)
+	if(z <= GLFix(CLIP_PLANE) || GLFix(z_buffer[pitch]) <= z)
         return;
 
     z_buffer[pitch] = z;
 
     screen[pitch] = c;
 }
+*/
+
+/* Modified for BGR555 colorspace support.
+ * The textures also need to be converted for BGR555 as well.
+ * */
 
 RGB rgbColor(const COLOR c)
 {
-    const GLFix r = (c >> 11) & 0b11111;
-    const GLFix g = (c >> 5) & 0b111111;
-    const GLFix b = (c >> 0) & 0b11111;
+    const GLFix b = (c >> 10) & 0b11111;
+    const GLFix g = (c >> 5) & 0b11111;
+    const GLFix r = (c >> 0) & 0b11111;
 
-    return {r / GLFix(0b11111), g / GLFix(0b111111), b / GLFix(0b11111)};
+    return {b / GLFix(0b11111), g / GLFix(0b11111), r / GLFix(0b11111)};
 }
 
 COLOR colorRGB(const RGB rgb)
@@ -390,18 +497,18 @@ COLOR colorRGB(const RGB rgb)
 
 COLOR colorRGB(const GLFix r, const GLFix g, const GLFix b)
 {
-    const int r1 = (r * GLFix(0b11111)).round();
-    const int g1 = (g * GLFix(0b111111)).round();
-    const int b1 = (b * GLFix(0b11111)).round();
+    const uint_fast8_t r1 = (r * GLFix(0b11111)).round();
+    const uint_fast8_t g1 = (g * GLFix(0b11111)).round();
+    const uint_fast8_t b1 = (b * GLFix(0b11111)).round();
 
-    return ((r1 & 0b11111) << 11) | ((g1 & 0b111111) << 5) | (b1 & 0b11111);
+    return ((b1 & 0b11111) << 10) | ((g1 & 0b11111) << 5) | ((r1 & 0b11111) << 0);
 }
 
 GLFix nglZBufferAt(const unsigned int x, const unsigned int y)
 {
-    if(x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
+    /*if(x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
         return 0;
-
+*/
     return z_buffer[x + y * SCREEN_WIDTH];
 }
 
@@ -910,13 +1017,18 @@ void glBegin(GLDrawMode mode)
     draw_mode = mode;
 }
 
+static inline void *memset16(uint16_t *m, uint16_t val, uint_fast32_t count)
+{
+    while(count--) *m++ = val;
+    return m;
+}
+
 void glClear(const int buffers)
 {
-    if(buffers & GL_COLOR_BUFFER_BIT)
-        std::fill(screen, screen + SCREEN_WIDTH*SCREEN_HEIGHT, color);
-
-    if(buffers & GL_DEPTH_BUFFER_BIT)
-		std::fill(z_buffer, z_buffer + SCREEN_WIDTH*SCREEN_HEIGHT, UINT16_MAX);
+	std::fill(screen, screen + SCREEN_WIDTH*SCREEN_HEIGHT, color);
+	std::fill(z_buffer, z_buffer + SCREEN_WIDTH*SCREEN_HEIGHT, UINT16_MAX);
+	/*memset16(screen, color, (SCREEN_WIDTH*SCREEN_HEIGHT)*2);
+	memset(z_buffer, UINT16_MAX, (SCREEN_WIDTH*SCREEN_HEIGHT)*2);*/
 }
 
 void glLoadIdentity()

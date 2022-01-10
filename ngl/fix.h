@@ -121,6 +121,7 @@ public:
 
     void print() const
     {
+		#ifdef DEBUG
         char str[32];
 
         double n = toFloat();
@@ -176,6 +177,7 @@ public:
             *(c) = '\0'; }
 
         fputs(str, stdout);
+        #endif
     }
 
     using type = T;

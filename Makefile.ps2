@@ -1,11 +1,13 @@
 CXX	= mips64r5900el-ps2-elf-g++
-CXXFLAGS = -DPS2 -D_EE -Ofast -G0 -Wall -Isrc -std=c++11  -I ngl -I. -Ips2
-CXXFLAGS += -I$(PS2DEV)/ps2sdk/ee/include -I$(PS2DEV)/ps2sdk/common/include -I$(GSKIT)/include
+CXXFLAGS = -D_EE -O3 -fdata-sections -ffunction-sections -fsingle-precision-constant -fno-common -mno-abicalls -mno-xgot -flto -G0 -Wall -Isrc -std=gnu++17  -I ngl -I. -Ips2
+CXXFLAGS += -I$(PS2DEV)/ps2sdk/ee/include -I$(PS2DEV)/ps2sdk/common/include -I$(GSKIT)/include -I$(PS2DEV)/ps2sdk/ports/include
 
-LDFLAGS = -T$(PS2DEV)/ps2sdk/ee/startup/linkfile -L$(GSKIT)/lib -L$(PS2DEV)/ps2sdk/ee/lib
-LDFLAGS += -Xlinker --start-group  -lgskit_toolkit -lgskit -ldmakit -Xlinker --end-group -Wl,--as-needed -Wl,--gc-sections -s -flto
+CXXFLAGS += -DBGR_TEXTURE -DPS2
+CXXFLAGS += -Wall
 
-DEFINES = -Wall
+LDFLAGS = -T$(PS2DEV)/ps2sdk/ee/startup/linkfile -L$(GSKIT)/lib -L$(PS2DEV)/ps2sdk/ee/lib -L$(PS2DEV)/ps2sdk/ports/lib
+LDFLAGS += -Xlinker -lpad -lgskit_toolkit -lgskit -ldmakit -Wl,--as-needed,--gc-sections -s -flto
+
 OUTPUT = crafti.elf
 
 OBJS += $(patsubst %.cpp, %.o, $(shell find . -name \*.cpp))
@@ -21,7 +23,7 @@ OBJS		= $(OBJ_C) $(OBJ_CP)
 all: ${OUTPUT}
 
 ${OUTPUT}: ${OBJS}
-	${CXX} ${CXXFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS} ${DEFINES} 
+	${CXX} ${CXXFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS}
 	
 clean:
 	rm *.o *.img src/*.o src/sdl/*.o src/dc/*.o src/enemies/*.o ${OUTPUT} *.BIN *.iso *.mds *.mdf *.obj ./ps2/*.obj ./ngl/*.obj *.d ./ps2/*.d ./ngl/*.d *.exe

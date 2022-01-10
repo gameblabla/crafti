@@ -12,6 +12,10 @@ bool Task::key_held_down, Task::running, Task::background_saved, Task::has_touch
 TEXTURE *Task::screen, *Task::background;
 const char *Task::savefile;
 
+
+#include <gsKit.h>
+extern GSTEXTURE bigtex;
+	
 void Task::makeCurrent()
 {
     current_task = this;
@@ -21,7 +25,6 @@ extern unsigned char pad_game[14];
 
 bool Task::keyPressed(int key)
 {
-	/*
 	switch(key)
 	{
 		case CONT_DPAD_UP:
@@ -64,21 +67,31 @@ bool Task::keyPressed(int key)
 			if (pad_game[12] == 2) return true;
 		break;
 	}
-*/
 	return false;
 }
 
 void Task::initializeGlobals(const char *savefile)
 {
     running = true;
-
-    screen = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
+    
+	/*screen = new TEXTURE;
+	screen->width = SCREEN_WIDTH,
+	screen->height = SCREEN_HEIGHT,
+	screen->has_transparency = false,
+	screen->transparent_color = 0,
+	screen->bitmap = (COLOR*)bigtex.Mem;*/
+	screen = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
     nglSetBuffer(screen->bitmap);
 
     has_touchpad = is_touchpad;
     keys_inverted = is_classic;
 
-    background = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
+	/*background->width = SCREEN_WIDTH,
+	background->height = SCREEN_HEIGHT,
+	background->has_transparency = false,
+	background->transparent_color = 0,
+	background->bitmap = (COLOR*)bigtex.Mem;*/
+	background = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
     background_saved = false;
 
     Task::savefile = savefile;
@@ -107,6 +120,7 @@ static constexpr int savefile_version = 5;
 
 bool Task::load()
 {
+	#if 0
 	FILE *file = fopen(savefile, "rb");
     if(!file)
         return false;
@@ -144,10 +158,14 @@ bool Task::load()
     fclose(file);
 
     return ret;
+    #else
+    return false;
+    #endif
 }
 
 bool Task::save()
 {
+	#if 0
 	FILE *file = fopen(savefile, "wb");
     if(!file)
         return false;
@@ -172,4 +190,7 @@ bool Task::save()
     fclose(file);
 
     return ret;
+    #else
+    return false;
+    #endif
 }

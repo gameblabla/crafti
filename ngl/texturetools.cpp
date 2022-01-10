@@ -12,6 +12,11 @@ private:
     FILE *fp;
 };
 
+#ifdef PS2
+#include <gsKit.h>
+#include <malloc.h>
+#endif
+
 TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill, const bool transparent, const COLOR transparent_color)
 {
     // TODO: Don't leak on exception
@@ -19,6 +24,12 @@ TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill
 
     ret->width = w;
     ret->height = h;
+    
+    #ifdef PS2
+		extern GSTEXTURE bigtex;
+		ret->bitmap = (COLOR*)memalign(128, gsKit_texture_size_ee(bigtex.Width, bigtex.Height, bigtex.PSM));
+		if(fill != 0) std::fill(ret->bitmap, ret->bitmap + w * h, fill);
+    #else
     if(fill == 0)
         ret->bitmap = new COLOR[w * h]{fill};
     else
@@ -26,6 +37,7 @@ TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill
         ret->bitmap = new COLOR[w * h];
         std::fill(ret->bitmap, ret->bitmap + w * h, fill);
     }
+    #endif
 
     ret->has_transparency = transparent;
     ret->transparent_color = transparent_color;
@@ -35,7 +47,11 @@ TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill
 
 void deleteTexture(TEXTURE *tex)
 {
+	#ifdef PS2
+	free(tex->bitmap);
+	#else
     delete[] tex->bitmap;
+    #endif
     delete tex;
 }
 
