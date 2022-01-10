@@ -1,0 +1,27 @@
+CXX	= mips64r5900el-ps2-elf-g++
+CXXFLAGS = -DPS2 -D_EE -Ofast -G0 -Wall -Isrc -std=c++11  -I ngl -I. -Ips2
+CXXFLAGS += -I$(PS2DEV)/ps2sdk/ee/include -I$(PS2DEV)/ps2sdk/common/include -I$(GSKIT)/include
+
+LDFLAGS = -T$(PS2DEV)/ps2sdk/ee/startup/linkfile -L$(GSKIT)/lib -L$(PS2DEV)/ps2sdk/ee/lib
+LDFLAGS += -Xlinker --start-group  -lgskit_toolkit -lgskit -ldmakit -Xlinker --end-group -Wl,--as-needed -Wl,--gc-sections -s -flto
+
+DEFINES = -Wall
+OUTPUT = crafti.elf
+
+OBJS += $(patsubst %.cpp, %.o, $(shell find . -name \*.cpp))
+
+SRCDIR		= ./ ./ps2 ./ngl
+VPATH		= $(SRCDIR)
+SRC_C		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
+SRC_CP		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.cpp))
+OBJ_C		= $(notdir $(patsubst %.c, %.o, $(SRC_C)))
+OBJ_CP		= $(notdir $(patsubst %.cpp, %.o, $(SRC_CP)))
+OBJS		= $(OBJ_C) $(OBJ_CP)
+
+all: ${OUTPUT}
+
+${OUTPUT}: ${OBJS}
+	${CXX} ${CXXFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS} ${DEFINES} 
+	
+clean:
+	rm *.o *.img src/*.o src/sdl/*.o src/dc/*.o src/enemies/*.o ${OUTPUT} *.BIN *.iso *.mds *.mdf *.obj ./ps2/*.obj ./ngl/*.obj *.d ./ps2/*.d ./ngl/*.d *.exe
