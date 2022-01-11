@@ -1,32 +1,47 @@
-/*#include <mikmod.h>
+// STD C:
+#include <stdlib.h>
 
-MODULE *mf = NULL;
-SAMPLE *sf[2];*/
+// PS2DEV SDK:
+#include <sifrpc.h>
+#include <loadfile.h>
+#include <audsrv.h>
+
+#include "put.h"
+#include "explode.h"
+#include "remove.h"
+
+extern void *audsrv_irx;
+extern int size_audsrv_irx;
+
+static audsrv_adpcm_t sample[3];
 
 void Init_Sound()
 {
-	/*MikMod_RegisterAllDrivers();
-	MikMod_RegisterAllLoaders();
-	md_mode = DMODE_16BITS|DMODE_STEREO|DMODE_SOFT_SNDFX|DMODE_SOFT_MUSIC; 
-	md_reverb = 0;
-	md_pansep = 128;
-	MikMod_Init("");
-	MikMod_SetNumVoices(-1, 8);
-	MikMod_EnableOutput();
+	SifLoadModule("rom0:LIBSD", 0, NULL);
+
+	SifExecModuleBuffer(&audsrv_irx, size_audsrv_irx, 0, NULL, NULL);
+
+	audsrv_init();
 	
-	sf[0] = Sample_Load("mass:/put.wav");
-	sf[1] = Sample_Load("mass:/remove.wav");
-	sf[2] = Sample_Load("mass:/explode.wav");*/
+	audsrv_adpcm_init();
+	audsrv_adpcm_set_volume(0, MAX_VOLUME);
+	audsrv_adpcm_set_volume(1, MAX_VOLUME);
+	audsrv_adpcm_set_volume(2, MAX_VOLUME);
+
+	audsrv_load_adpcm(&sample[0], (void*)put_adpcm_data, put_adpcm_data_len);
+	audsrv_load_adpcm(&sample[1], (void*)remove_adpcm_data, remove_adpcm_data_len);
+	audsrv_load_adpcm(&sample[2], (void*)explode_adpcm_data, explode_adpcm_data_len);
 }
 
 void Play_SFX(unsigned char i)
 {
-	//Sample_Play(sf[i],0,0);
+	audsrv_ch_play_adpcm(i, &sample[i]);
 } 
 
 void Close_Sound()
 {
-	/*Player_Stop();
-	Player_Free(mf);
-	MikMod_Exit();*/
+	if (audsrv_stop_audio() != 0)
+	{
+		return;
+	}
 } 

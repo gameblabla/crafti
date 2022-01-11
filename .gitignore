@@ -36,3 +36,5 @@ cd/*.wav
 *.EXE
 *.cpp.d
 *.c.d
+*.s
+*.S

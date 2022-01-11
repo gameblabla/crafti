@@ -1,3 +1,4 @@
+AS	= mips64r5900el-ps2-elf-g++
 CXX	= mips64r5900el-ps2-elf-g++
 CXXFLAGS = -D_EE -O3 -fdata-sections -ffunction-sections -fsingle-precision-constant -fno-common -mno-abicalls -mno-xgot -flto -G0 -Wall -Isrc -std=gnu++17  -I ngl -I. -Ips2
 CXXFLAGS += -I$(PS2DEV)/ps2sdk/ee/include -I$(PS2DEV)/ps2sdk/common/include -I$(GSKIT)/include -I$(PS2DEV)/ps2sdk/ports/include
@@ -6,7 +7,7 @@ CXXFLAGS += -DBGR_TEXTURE -DPS2
 CXXFLAGS += -Wall
 
 LDFLAGS = -T$(PS2DEV)/ps2sdk/ee/startup/linkfile -L$(GSKIT)/lib -L$(PS2DEV)/ps2sdk/ee/lib -L$(PS2DEV)/ps2sdk/ports/lib
-LDFLAGS += -Xlinker -lpad -lgskit_toolkit -lgskit -ldmakit -Wl,--as-needed,--gc-sections -s -flto
+LDFLAGS += -Xlinker -lpad -lgskit_toolkit -lgskit -ldmakit -laudsrv -Wl,--as-needed,--gc-sections -s -flto
 
 OUTPUT = crafti.elf
 
@@ -20,10 +21,14 @@ OBJ_C		= $(notdir $(patsubst %.c, %.o, $(SRC_C)))
 OBJ_CP		= $(notdir $(patsubst %.cpp, %.o, $(SRC_CP)))
 OBJS		= $(OBJ_C) $(OBJ_CP)
 
-all: ${OUTPUT}
+all: comp ${OUTPUT}
+
+comp:
+	bin2s $(PS2SDK)/iop/irx/audsrv.irx audsrv_irx.s audsrv_irx
+	mips64r5900el-ps2-elf-gcc -c -o audsrv_irx.o audsrv_irx.s
 
 ${OUTPUT}: ${OBJS}
-	${CXX} ${CXXFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS}
+	${CXX} ${CXXFLAGS} -o ${OUTPUT} ${OBJS} audsrv_irx.o ${LDFLAGS}
 	
 clean:
 	rm *.o *.img src/*.o src/sdl/*.o src/dc/*.o src/enemies/*.o ${OUTPUT} *.BIN *.iso *.mds *.mdf *.obj ./ps2/*.obj ./ngl/*.obj *.d ./ps2/*.d ./ngl/*.d *.exe
