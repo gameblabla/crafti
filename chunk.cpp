@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdlib>
 #include <algorithm>
 #include <libndls.h>
@@ -8,15 +9,16 @@
 #include "blockrenderer.h"
 
 //Texture with "Loading" written on it
-//#include "textures/loadingtext.h"
+#include "textures/loadingtext.h"
 
-#ifdef DEBUG
+#ifndef NDEBUG
     #define debug(...) printf(__VA_ARGS__)
 #else
     #define debug(...)
 #endif
 
 constexpr const int Chunk::SIZE;
+int Chunk::pos_indices[SIZE + 1][SIZE + 1][SIZE + 1];
 
 Chunk::Chunk(int x, int y, int z)
     : x(x), y(y), z(z), abs_x(x*SIZE*BLOCK_SIZE), abs_y(y*SIZE*BLOCK_SIZE), abs_z(z*SIZE*BLOCK_SIZE), aabb(abs_x, abs_y, abs_z, abs_x + SIZE*BLOCK_SIZE, abs_y + SIZE*BLOCK_SIZE, abs_z + SIZE*BLOCK_SIZE)
@@ -27,12 +29,14 @@ static constexpr bool inBounds(int x, int y, int z)
     return x >= 0 && y >= 0 && z >= 0 && x < Chunk::SIZE && y < Chunk::SIZE && z < Chunk::SIZE;
 }
 
-unsigned int Chunk::getPosition(int x, int y, int z)
+unsigned int Chunk::getPosition(unsigned int x, unsigned int y, unsigned int z)
 {
+    assert (x <= Chunk::SIZE && y <= Chunk::SIZE && z <= Chunk::SIZE);
+
     if(pos_indices[x][y][z] == -1)
     {
         pos_indices[x][y][z] = positions.size();
-        positions.emplace_back(VECTOR3{abs_x + x*BLOCK_SIZE, abs_y + y*BLOCK_SIZE, abs_z + z*BLOCK_SIZE});
+        positions.emplace_back(VECTOR3{x*BLOCK_SIZE, y*BLOCK_SIZE, z*BLOCK_SIZE});
     }
 
     return pos_indices[x][y][z];
@@ -73,11 +77,41 @@ bool Chunk::isLocalBlockSideRendered(const int x, const int y, const int z, cons
     return sides_rendered[x][y][z] & side;
 }
 
+// SH-4 Maths
+#ifdef DREAMCAST
+static inline void * memset_32bit(void *dest, const uint32_t val, size_t len)
+{
+  uint32_t * d = (uint32_t*)dest;
+  uint32_t * nextd = d + len;
+  asm volatile (
+    "clrs\n\t" // Align for parallelism (CO) - SH4a use "stc SR, Rn" instead with a dummy Rn
+    "dt %[size]\n" // Decrement and test size here once to prevent extra jump (EX 1)
+  ".align 2\n"
+  "1:\n\t"
+    // *--nextd = val
+    "mov.l %[in], @-%[out]\n\t" // (LS 1/1)
+    "bf.s 1b\n\t" // (BR 1/2)
+    " dt %[size]\n" // (--len) ? 0 -> T : 1 -> T (EX 1)
+    : [out] "+r" ((uint32_t)nextd), [size] "+&r" (len) // outputs
+    : [in] "r" (val) // inputs
+    : "t", "memory" // clobbers
+  );
+  return dest;
+}
+#endif
+
 void Chunk::buildGeometry()
 {
+	#if 0
     drawLoadingtext(8);
-
-    std::fill(pos_indices[0][0] + 0, pos_indices[SIZE][SIZE] + SIZE + 1, -1);
+	#endif
+	
+	#ifdef DREAMCAST
+	memset_32bit(pos_indices,  -1, ((SIZE + 1) * (SIZE + 1) * (SIZE + 1)));
+	#else
+	memset(pos_indices,  -1, (SIZE + 1) * (SIZE + 1) * (SIZE + 1) * sizeof(int));
+    //std::fill(pos_indices[0][0] + 0, pos_indices[SIZE][SIZE] + SIZE + 1, -1);
+    #endif
 
     positions.clear();
     vertices.clear();
@@ -126,13 +160,13 @@ void Chunk::buildGeometry()
     }
 
     //Special blocks
-    GLFix pos_x = abs_x;
+    GLFix pos_x = 0;
     for(int x = 0; x < SIZE; x++, pos_x += BLOCK_SIZE)
     {
-        GLFix pos_y = abs_y;
+        GLFix pos_y = 0;
         for(int y = 0; y < SIZE; y++, pos_y += BLOCK_SIZE)
         {
-            GLFix pos_z = abs_z;
+            GLFix pos_z = 0;
             for(int z = 0; z < SIZE; z++, pos_z += BLOCK_SIZE)
             {
                 BLOCK_WDATA block = blocks[x][y][z];
@@ -162,9 +196,9 @@ void Chunk::buildGeometry()
     debug("Done!\n");
 }
 
-static bool behindClip(const VERTEX &v1)
+static bool behindClip(const VECTOR3 &v1)
 {
-    return transformation->data[2][0]*v1.x + transformation->data[2][1]*v1.y + transformation->data[2][2]*v1.z + transformation->data[2][3] <= GLFix(CLIP_PLANE);
+    return (transformation->data[2][0]*v1.x + transformation->data[2][1]*v1.y + transformation->data[2][2]*v1.z + transformation->data[2][3]) <= GLFix(CLIP_PLANE);
 }
 
 void Chunk::logic()
@@ -195,20 +229,20 @@ void Chunk::render()
         return;
 
     //Basic culling
-    VERTEX v1{abs_x,                            abs_y,                            abs_z, 0, 0, 0},
-            v2{abs_x + Chunk::SIZE * BLOCK_SIZE, abs_y,                            abs_z, 0, 0, 0},
-            v3{abs_x,                            abs_y + Chunk::SIZE * BLOCK_SIZE, abs_z, 0, 0, 0},
-            v4{abs_x + Chunk::SIZE * BLOCK_SIZE, abs_y + Chunk::SIZE * BLOCK_SIZE, abs_z, 0, 0, 0},
-            v5{abs_x,                            abs_y,                            abs_z + Chunk::SIZE * BLOCK_SIZE, 0, 0, 0},
-            v6{abs_x + Chunk::SIZE * BLOCK_SIZE, abs_y,                            abs_z + Chunk::SIZE * BLOCK_SIZE, 0, 0, 0},
-            v7{abs_x,                            abs_y + Chunk::SIZE * BLOCK_SIZE, abs_z + Chunk::SIZE * BLOCK_SIZE, 0, 0, 0},
-            v8{abs_x + Chunk::SIZE * BLOCK_SIZE, abs_y + Chunk::SIZE * BLOCK_SIZE, abs_z + Chunk::SIZE * BLOCK_SIZE, 0, 0, 0};
+    VECTOR3 v1{abs_x,                            abs_y,                            abs_z},
+            v2{abs_x + Chunk::SIZE * BLOCK_SIZE, abs_y,                            abs_z},
+            v3{abs_x,                            abs_y + Chunk::SIZE * BLOCK_SIZE, abs_z},
+            v4{abs_x + Chunk::SIZE * BLOCK_SIZE, abs_y + Chunk::SIZE * BLOCK_SIZE, abs_z},
+            v5{abs_x,                            abs_y,                            abs_z + Chunk::SIZE * BLOCK_SIZE},
+            v6{abs_x + Chunk::SIZE * BLOCK_SIZE, abs_y,                            abs_z + Chunk::SIZE * BLOCK_SIZE},
+            v7{abs_x,                            abs_y + Chunk::SIZE * BLOCK_SIZE, abs_z + Chunk::SIZE * BLOCK_SIZE},
+            v8{abs_x + Chunk::SIZE * BLOCK_SIZE, abs_y + Chunk::SIZE * BLOCK_SIZE, abs_z + Chunk::SIZE * BLOCK_SIZE};
 
     //Z-Culling (now, it's a bit cheaper than a full MultMatVectRes)
     if(behindClip(v1) && behindClip(v2) && behindClip(v3) && behindClip(v4) && behindClip(v5) && behindClip(v6) && behindClip(v7) && behindClip(v8))
         return;
 
-    VERTEX v9, v10, v11, v12, v13, v14, v15, v16;
+    VECTOR3 v9, v10, v11, v12, v13, v14, v15, v16;
 
     nglMultMatVectRes(transformation, &v1, &v9);
     nglMultMatVectRes(transformation, &v2, &v10);
@@ -244,20 +278,23 @@ void Chunk::render()
             && v13.y >= SCREEN_HEIGHT && v14.y >= SCREEN_HEIGHT && v15.y >= SCREEN_HEIGHT && v16.y >= SCREEN_HEIGHT)
         return;
 
-    nglForceColor(true);
-    nglDrawArray(vertices_color.data(), vertices_color.size(), positions.data(), positions.size(), positions_processed.data(), GL_QUADS, true);
-    nglForceColor(false);
+    glPushMatrix();
+    glTranslatef(abs_x, abs_y, abs_z);
 
-    nglDrawArray(vertices.data(), vertices.size(), positions.data(), positions.size(), positions_processed.data(), GL_QUADS, false);
+    glBindTexture(nullptr);
+    nglDrawArray(vertices_color.data(), vertices_color.size(), positions.data(), positions.size(), positions_processed.data(), GL_QUADS, true);
 
     glBindTexture(terrain_quad);
     nglDrawArray(vertices_quad.data(), vertices_quad.size(), positions.data(), positions.size(), positions_processed.data(), GL_QUADS, false);
 
     glBindTexture(terrain_current);
+    nglDrawArray(vertices.data(), vertices.size(), positions.data(), positions.size(), positions_processed.data(), GL_QUADS, false);
 
     const VERTEX *ve = vertices_unaligned.data();
     for(unsigned int i = 0; i < vertices_unaligned.size(); i += 4, ve += 4)
     {
+        VERTEX v1, v2, v3, v4;
+
         nglMultMatVectRes(transformation, &ve[0], &v1);
         nglMultMatVectRes(transformation, &ve[1], &v2);
         nglMultMatVectRes(transformation, &ve[2], &v3);
@@ -273,16 +310,18 @@ void Chunk::render()
         v3.v = ve[2].v;
         v3.c = ve[2].c;
 
-        if(nglDrawTriangle(&v1, &v2, &v3, (v1.c & TEXTURE_DRAW_BACKFACE) == 0))
+        if(nglDrawTriangle(&v1, &v2, &v3, (v1.c & TEXTURE_DRAW_BACKFACE) == 0) || (v1.c & INDEPENDENT_TRIS))
         {
             nglMultMatVectRes(transformation, &ve[3], &v4);
             v4.u = ve[3].u;
             v4.v = ve[3].v;
             v4.c = ve[3].c;
 
-            nglDrawTriangle(&v3, &v4, &v1, false);
+            nglDrawTriangle(&v3, &v4, &v1, v1.c & INDEPENDENT_TRIS);
         }
     }
+
+    return glPopMatrix();
 }
 
 BLOCK_WDATA Chunk::getLocalBlock(const int x, const int y, const int z) const
@@ -564,20 +603,42 @@ bool Chunk::loadFromFile(FILE *file)
     }
 }
 
-bool Chunk::isBlockPowered(const int x, const int y, const int z)
+bool Chunk::gettingPowerFrom(const int x, const int y, const int z, BLOCK_SIDE side, bool ignore_redstone_wire)
 {
-    return getPOWERSTATE(getGlobalBlockRelative(x - 1, y, z))
-            || getPOWERSTATE(getGlobalBlockRelative(x + 1, y, z))
-            || getPOWERSTATE(getGlobalBlockRelative(x, y - 1, z))
-            || getPOWERSTATE(getGlobalBlockRelative(x, y + 1, z))
-            || getPOWERSTATE(getGlobalBlockRelative(x, y, z - 1))
-            || getPOWERSTATE(getGlobalBlockRelative(x, y, z + 1));
+    auto gettingStrongPowerFrom = [this, ignore_redstone_wire](const int x, const int y, const int z, BLOCK_SIDE side) {
+        BLOCK_WDATA block = getGlobalBlockRelative(x, y, z);
+        if(getBLOCK(block) == BLOCK_AIR || (ignore_redstone_wire && getBLOCK(block) == BLOCK_REDSTONE_WIRE))
+            return false;
+
+        return global_block_renderer.powersSide(block, side) == PowerState::StronglyPowered;
+    };
+
+    BLOCK_WDATA block = getGlobalBlockRelative(x, y, z);
+    if(getBLOCK(block) == BLOCK_AIR || (ignore_redstone_wire && getBLOCK(block) == BLOCK_REDSTONE_WIRE))
+        return false;
+
+    if(global_block_renderer.powersSide(block, side) != PowerState::NotPowered)
+        return true;
+
+    if(!global_block_renderer.isOpaque(block))
+        return false;
+
+    return gettingStrongPowerFrom(x-1, y, z, BLOCK_RIGHT)
+        || gettingStrongPowerFrom(x+1, y, z, BLOCK_LEFT)
+        || gettingStrongPowerFrom(x, y-1, z, BLOCK_TOP)
+        || gettingStrongPowerFrom(x, y+1, z, BLOCK_BOTTOM)
+        || gettingStrongPowerFrom(x, y, z-1, BLOCK_BACK)
+        || gettingStrongPowerFrom(x, y, z+1, BLOCK_FRONT);
 }
 
-bool Chunk::isBlockPoweredOrPowering(const int x, const int y, const int z)
+bool Chunk::isBlockPowered(const int x, const int y, const int z, bool ignore_redstone_wire)
 {
-    return getPOWERSTATE(getGlobalBlockRelative(x, y, z))
-            || isBlockPowered(x, y, z);
+    return gettingPowerFrom(x-1, y, z, BLOCK_RIGHT, ignore_redstone_wire)
+        || gettingPowerFrom(x+1, y, z, BLOCK_LEFT, ignore_redstone_wire)
+        || gettingPowerFrom(x, y-1, z, BLOCK_TOP, ignore_redstone_wire)
+        || gettingPowerFrom(x, y+1, z, BLOCK_BOTTOM, ignore_redstone_wire)
+        || gettingPowerFrom(x, y, z-1, BLOCK_BACK, ignore_redstone_wire)
+        || gettingPowerFrom(x, y, z+1, BLOCK_FRONT, ignore_redstone_wire);
 }
 
 void Chunk::makeTree(unsigned int x, unsigned int y, unsigned int z)
@@ -608,8 +669,10 @@ void Chunk::makeTree(unsigned int x, unsigned int y, unsigned int z)
     setGlobalBlockRelative(x, y + max_height + 2, z, BLOCK_LEAVES);
 }
 
+
 void drawLoadingtext(const int i)
 {
+	#if 0
     static int count = 0;
     static bool shown = false;
 
@@ -637,5 +700,6 @@ void drawLoadingtext(const int i)
         screen.height = SCREEN_HEIGHT;
         screen.bitmap = reinterpret_cast<COLOR*>(REAL_SCREEN_BASE_ADDRESS);
         drawTexture(loadingtext, screen, 0, 0, loadingtext.width, loadingtext.height, (SCREEN_WIDTH - loadingtext.width) / 2, 0, loadingtext.width, loadingtext.height);
+    #endif
     #endif
 }

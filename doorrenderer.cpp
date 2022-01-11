@@ -1,5 +1,8 @@
 #include "doorrenderer.h"
 
+constexpr GLFix DoorRenderer::door_depth; //As small as possible, a opened door shouldn't be much of an obstacle
+constexpr uint8_t DoorRenderer::DOOR_TOP, DoorRenderer::DOOR_OPEN, DoorRenderer::DOOR_FORCE_OPEN; //FORCE_OPEN: Opened by hand, not redstone
+
 //If the door is open, this array maps the side of the closed door to the side of an open door and vice-versa
 static const BLOCK_SIDE door_side_map[] {
         BLOCK_RIGHT,
@@ -70,9 +73,7 @@ AABB DoorRenderer::getAABB(const BLOCK_WDATA block, GLFix x, GLFix y, GLFix z)
 
 void DoorRenderer::drawPreview(const BLOCK_WDATA /*block*/, TEXTURE &dest, int x, int y)
 {
-    TextureAtlasEntry tex = terrain_atlas[1][5].resized;
-    tex.bottom += tex.bottom - tex.top; //Double height
-    BlockRenderer::drawTextureAtlasEntry(*terrain_resized, tex, dest, x, y);
+    drawTexture(*door_preview, dest, 0, 0, 16, 32, x + 4, y, 16, 32);
 }
 
 bool DoorRenderer::action(const BLOCK_WDATA block, const int local_x, const int local_y, const int local_z, Chunk &c)
@@ -94,11 +95,8 @@ void DoorRenderer::tick(const BLOCK_WDATA block, int local_x, int local_y, int l
     if(getBLOCKDATA(block) & DOOR_FORCE_OPEN)
         return;
 
-    bool redstone_state = c.isBlockPoweredOrPowering(local_x, local_y - 1, local_z) || c.isBlockPoweredOrPowering(local_x, local_y + 2, local_z)
-            || c.isBlockPoweredOrPowering(local_x - 1, local_y, local_z) || c.isBlockPoweredOrPowering(local_x - 1, local_y + 1, local_z)
-            || c.isBlockPoweredOrPowering(local_x + 1, local_y, local_z) || c.isBlockPoweredOrPowering(local_x + 1, local_y + 1, local_z)
-            || c.isBlockPoweredOrPowering(local_x, local_y, local_z - 1) || c.isBlockPoweredOrPowering(local_x, local_y + 1, local_z - 1)
-            || c.isBlockPoweredOrPowering(local_x, local_y, local_z + 1) || c.isBlockPoweredOrPowering(local_x, local_y + 1, local_z + 1);
+    bool redstone_state = c.isBlockPowered(local_x, local_y, local_z)
+            || c.isBlockPowered(local_x, local_y + 1, local_z);
 
     bool door_open = getBLOCKDATA(block) & DOOR_OPEN;
 
@@ -138,6 +136,11 @@ void DoorRenderer::removedBlock(const BLOCK_WDATA block, int local_x, int local_
         if(getBLOCK(c.getGlobalBlockRelative(local_x, local_y + 1, local_z)) == BLOCK_DOOR)
             c.setGlobalBlockRelative(local_x, local_y + 1, local_z, BLOCK_AIR);
     }
+}
+
+PowerState DoorRenderer::powersSide(const BLOCK_WDATA /*block*/, BLOCK_SIDE /*side*/)
+{
+    return PowerState::NotPowered;
 }
 
 const char *DoorRenderer::getName(const BLOCK_WDATA /*block*/)

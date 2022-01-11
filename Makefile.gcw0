@@ -1,23 +1,27 @@
-GCC = mipsel-linux-gcc
-GPP = mipsel-linux-g++
-LD = mipsel-linux-g++
-GCCFLAGS = -I/usr/include/SDL -DGCW0 -Ofast -mips32r2 -fno-rtti -fgcse-sm -fgcse-las -ffunction-sections -fdata-sections -I ngl -I.
-LDFLAGS = -lm -lSDL -lSDL_mixer -Wl,--gc-sections -flto
-EXE = crafti
-OBJS = $(patsubst %.c, %.o, $(shell find . -name \*.c))
+CXX	= /opt/gcw0-toolchain/bin/mipsel-linux-g++
+CXXFLAGS = -Ofast -mips32r2 -fno-rtti -fgcse-sm -fgcse-las -ffunction-sections -fdata-sections -DNDEBUG -Isrc -std=gnu++17  -Ingl -I. -Ipc
+
+#Including OPUS Libraries
+LDFLAGS = -lc -lm -lstdc++ -lSDL -lSDL_mixer -Wl,--gc-sections -flto
+
+DEFINES = -Wall
+OUTPUT = crafti.elf
+
 OBJS += $(patsubst %.cpp, %.o, $(shell find . -name \*.cpp))
-OBJS += $(patsubst %.S, %.o, $(shell find . -name \*.S))
 
-all: $(EXE).elf
+SRCDIR		= ./ ./pc ./ngl
+VPATH		= $(SRCDIR)
+SRC_C		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
+SRC_CP		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.cpp))
+OBJ_C		= $(notdir $(patsubst %.c, %.o, $(SRC_C)))
+OBJ_CP		= $(notdir $(patsubst %.cpp, %.o, $(SRC_CP)))
+OBJS		= $(OBJ_C) $(OBJ_CP)
 
-%.o: %.cpp
-	@echo Compiling $<...
-	@$(GPP) -std=c++14 $(GCCFLAGS) -c $< -o $@
+all: ${OUTPUT}
 
-$(EXE).elf: $(OBJS)
-	+$(LD) $^ -o $@ $(GCCFLAGS) $(LDFLAGS)
+${OUTPUT}: ${OBJS}
+	${CXX} ${CXXFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS} ${DEFINES} 
 
-.PHONY: clean
+	
 clean:
-	rm -f `find . -name \*.o`
-	rm -f $(EXE).tns $(EXE).elf
+	rm *.o *.img src/*.o src/sdl/*.o src/dc/*.o src/enemies/*.o ${OUTPUT} *.BIN *.iso *.mds *.mdf *.obj ./xbox/*.obj ./ngl/*.obj *.d ./xbox/*.d ./ngl/*.d *.exe

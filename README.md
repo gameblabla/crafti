@@ -1,41 +1,30 @@
-===========
 crafti
-============
+======
 
-Game by Vogtinator (as well as the initial and incomplete SDL port)
-Crafti port for GCW0 by gameblabla
+3D Minecraft for TI Nspire CX calcs running Ndless  
+Thread on omnimaga: http://www.omnimaga.org/ti-nspire-projects/ngl-a-fast-(enough)-3d-engine-for-the-nspire/
 
-============
-Description
-============
+Screenshots
+-----------
 
-Crafti is a Minecraft clone made by Vogtinator for the TI Nspire CX.
-It was originally made to see if a Minecraft clone was possible on such limited hardware
-and crafti is the result of this.
+![asdf](http://www.ticalc.org/archives/files/ss/859/85909.gif)
+![jklö](http://i.imgur.com/WMDurMv.png)  
+![qwertz](http://www.ticalc.org/archives/files/ss/855/85542.gif)
+![abcde](http://img.ourl.ca/crafti_v1.0_list.png)
 
-It makes use of nGL : a very fast 3D library inspired by OpenGL 1.x.
-
-In trunk, Vogtinator made a basic SDL port for Crafti but without input !
-I have fixed that and i have optimised the input code for the GCW0 Zero.
-
-Since the GCW Zero is much more powerful than a TI-Nspire (around 10x faster),
-i have enabled Perspective Correction so you should get better graphics than on a ti-nspire.
-I still made the fast mode available, if you like how it looks.
-
-
-===========
 Controls
-===========
+--------
 
-B - Remove a block
-A - Put a block/Confirm
-X - Menu (Inventory)
-Y - Jump
+Move around using the numpad: 8-4-6-2  
+Jump using 5  
+Switch the current inventory slot with 1-3  
+Open a list of blocks with "."  
+Set the current inventory slot with 5 while the block list is open  
+Put a block down with 7 and destroy a block with 9  
+Open the menu with menu, move the cursor with 8-2 and select it with 5  
+ESC is a shortcut for "Save & Exit"
 
-L - Inventory : Move cursor left
-R - Inventory : Move cursor right
+Limitations
+-----------
 
-Start - Menu
-Select - Quit
-Joystick - Camera
-
+crafti doesn't use floats, so there will be some graphical inaccuracies.

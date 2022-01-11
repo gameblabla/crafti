@@ -33,8 +33,11 @@ public:
     bool saveToFile(FILE *file);
     bool loadFromFile(FILE *file);
 
-    bool isBlockPowered(const int x, const int y, const int z);
-    bool isBlockPoweredOrPowering(const int x, const int y, const int z);
+    //Redstone power: See wirerenderer.cpp for details
+    //Whether the block receives power from the specified side.
+    bool gettingPowerFrom(const int x, const int y, const int z, BLOCK_SIDE side, bool ignore_redstone_wire = false);
+    //Whether the block receives power directly or indirectly.
+    bool isBlockPowered(const int x, const int y, const int z, bool ignore_redstone_wire = false);
 
     GLFix absX() { return abs_x; }
     GLFix absY() { return abs_y; }
@@ -48,6 +51,10 @@ public:
 
     //Same as addAlignedVertex, but with nglForceColor on
     void addAlignedVertexForceColor(const int x, const int y, const int z, GLFix u, GLFix v, const COLOR c);
+
+    // For unaligned vertices: If set, the two triangles in the quad do backface culling independently.
+    // This is necessary when they're not on the same plane.
+    static constexpr COLOR INDEPENDENT_TRIS = 0x0001;
 
     //Doesn't have to be aligned, terrain_current is bound
     void addUnalignedVertex(const GLFix x, const GLFix y, const GLFix z, const GLFix u, const GLFix v, const COLOR c);
@@ -66,13 +73,11 @@ private:
     void makeTree(unsigned int x, unsigned int y, unsigned int z);
 
     //Data
-    unsigned int getPosition(int x, int y, int z);
+    unsigned int getPosition(unsigned int x, unsigned int y, unsigned int z);
 
     //Rendering
     void geometrySpecialBlock(BLOCK_WDATA block, unsigned int x, unsigned int y, unsigned int z, BLOCK_SIDE side);
     void buildGeometry();
-    VERTEX perspective(const IndexedVertex &v, VECTOR3 &transformed);
-    bool drawTriangle(const IndexedVertex &low, const IndexedVertex &middle, const IndexedVertex &high, bool backface_culling = true);
 
     //Data
     const GLFix abs_x, abs_y, abs_z;
@@ -81,7 +86,7 @@ private:
 
     //Rendering
     bool render_dirty = true;
-    int pos_indices[SIZE + 1][SIZE + 1][SIZE + 1];
+    static int pos_indices[SIZE + 1][SIZE + 1][SIZE + 1];
     BLOCK_SIDE_BITFIELD sides_rendered[SIZE][SIZE][SIZE] = {}; //It could be that other chunks already rendered parts of our blocks
     std::vector<VECTOR3> positions;
     std::vector<ProcessedPosition> positions_processed;

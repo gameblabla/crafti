@@ -16,6 +16,8 @@
 
 WorldTask world_task;
 
+constexpr GLFix  WorldTask::player_width,  WorldTask::player_height,  WorldTask::eye_pos;
+
 void WorldTask::makeCurrent()
 {
     Task::background_saved = false;
@@ -134,12 +136,19 @@ void WorldTask::logic()
             can_jump = true;
     }
 
+    /*if(keyPressed(KEY_NSPIRE_5) && can_jump) //Jump
+    {
+        vy = 50;
+        can_jump = false;
+    }*/
     if(keyPressed(KEY_NSPIRE_DOC) && can_jump) //Jump
     {
         vy = 50;
         can_jump = false;
     }
 
+	// Gameblabla - reimplement
+	#if 0
     if(has_touchpad)
     {
         touchpad_report_t touchpad;
@@ -190,6 +199,7 @@ void WorldTask::logic()
         tp_last_y = touchpad.y;
     }
     else
+    #endif
     {
         if(keyPressed(KEY_NSPIRE_UP))
             xr -= speed()/3;
@@ -291,7 +301,7 @@ void WorldTask::logic()
 
                         //If the player is stuck now, it's because of the block change, so remove it again
                         if(world.intersect(aabb))
-                            world.changeBlock(pos.x, pos.y, pos.z, BLOCK_AIR);
+                            world.changeBlock(pos.x, pos.y, pos.z, current_block);
                     }
                 }
             }
@@ -321,6 +331,8 @@ void WorldTask::logic()
     }
     else if(keyPressed(KEY_NSPIRE_PERIOD)) //Open list of blocks (or take screenshot with Ctrl + .)
     {
+		// SCREENSHOT
+		#if 0
         if(keyPressed(KEY_NSPIRE_CTRL))
         {
             //Find a filename that doesn't exist
@@ -345,7 +357,13 @@ void WorldTask::logic()
             }
         }
         else
+        #endif
+        {
+            draw_inventory = false;
+            render();
+            draw_inventory = true;
             block_list_task.makeCurrent();
+        }
 
         key_held_down = true;
     }
@@ -467,8 +485,8 @@ void WorldTask::render()
     crosshairPixel(0, 1);
     crosshairPixel(0, 2);
 
-    //Don't draw the inventory if the block list will be opened, it will draw the inventory itself
-    if(!keyPressed(KEY_NSPIRE_PERIOD) || key_held_down)
+    //Don't draw the inventory when drawing the background for BlockListTask
+    if(draw_inventory)
     {
         current_inventory.draw(*screen);
         drawStringCenter(global_block_renderer.getName(current_inventory.currentSlot()), 0xFFFF, *screen, SCREEN_WIDTH / 2, SCREEN_HEIGHT - current_inventory.height() - fontHeight());
@@ -479,6 +497,14 @@ void WorldTask::render()
         drawString(message, 0xFFFF, *screen, 2, 5);
         --message_timeout;
     }
+
+    #ifdef FPS_COUNTER
+        if(message_timeout == 0 && settings_task.getValue(SettingsTask::SHOW_FPS))
+        {
+            snprintf(this->message, sizeof(this->message), "FPS: %u", fps);
+            message_timeout = 20;
+        }
+    #endif
 }
 
 void WorldTask::resetWorld()
