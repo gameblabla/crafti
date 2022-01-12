@@ -13,7 +13,7 @@
 //These values are used to calculate offsets into the buffer.
 //If you want something like FBOs, make them variables and set them accordingly.
 //Watch out for different buffer sizes!
-#define SCREEN_WIDTH 320
+#define SCREEN_WIDTH 256
 #define SCREEN_HEIGHT 240
 
 //GLFix is an integral part of all calculations.

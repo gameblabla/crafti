@@ -7,24 +7,31 @@ HelpTask help_task;
 
 HelpTask::HelpTask()
 {
+	#ifdef MENU_GRAPH
     background = newTexture(background_width, background_height, 0, false);
+    #endif
 }
 
 HelpTask::~HelpTask()
 {
+	#ifdef MENU_GRAPH
     deleteTexture(background);
+    #endif
 }
 
 void HelpTask::makeCurrent()
 {
+	#ifdef MENU_GRAPH
     if(!background_saved)
         saveBackground();
 
     Task::makeCurrent();
+    #endif
 }
 
 void HelpTask::render()
 {
+	#ifdef MENU_GRAPH
     drawBackground();
 
     const unsigned int x = (SCREEN_WIDTH - background->width) / 2;
@@ -45,10 +52,12 @@ void HelpTask::render()
                "\n"
                "Programmed by Fabian Vogt\n"
                "Textures from PureBDcraft by https://bdcraft.net", 0xFFFF, *screen, x + 10, y + 8);
+	#endif
 }
 
 void HelpTask::logic()
 {
+	#ifdef MENU_GRAPH
     if(key_held_down)
         key_held_down = keyPressed(KEY_NSPIRE_ESC);
     else if(keyPressed(KEY_NSPIRE_ESC))
@@ -57,4 +66,5 @@ void HelpTask::logic()
 
         key_held_down = true;
     }
+    #endif
 }

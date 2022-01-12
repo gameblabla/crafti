@@ -72,8 +72,14 @@ int main(int argc, char *argv[])
 
     while(Task::running)
     {
+		#ifdef N64
+		nglStartDisplay();
+		#endif
+		
+		#if 0
         //Reset "loading" message
         drawLoadingtext(-1);
+        #endif
 
         Task::current_task->render();
 

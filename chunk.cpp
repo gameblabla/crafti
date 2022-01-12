@@ -11,6 +11,10 @@
 //Texture with "Loading" written on it
 #include "textures/loadingtext.h"
 
+#ifdef N64
+#include "gl.h"
+#endif
+
 #ifndef NDEBUG
     #define debug(...) printf(__VA_ARGS__)
 #else
@@ -108,6 +112,8 @@ void Chunk::buildGeometry()
 	
 	#ifdef DREAMCAST
 	memset_32bit(pos_indices,  -1, ((SIZE + 1) * (SIZE + 1) * (SIZE + 1)));
+	#elif defined(N64)
+	__n64_memset_ASM(pos_indices,  -1, (SIZE + 1) * (SIZE + 1) * (SIZE + 1) * sizeof(int));
 	#else
 	memset(pos_indices,  -1, (SIZE + 1) * (SIZE + 1) * (SIZE + 1) * sizeof(int));
     //std::fill(pos_indices[0][0] + 0, pos_indices[SIZE][SIZE] + SIZE + 1, -1);
@@ -187,8 +193,8 @@ void Chunk::buildGeometry()
         }
     }
 
-    std::fill(sides_rendered[0][0] + 0, sides_rendered[SIZE - 1][SIZE - 1] + SIZE, 0);
-
+	std::fill(sides_rendered[0][0] + 0, sides_rendered[SIZE - 1][SIZE - 1] + SIZE, 0);
+   
     positions_processed.resize(positions.size());
 
     render_dirty = false;
@@ -501,8 +507,7 @@ bool Chunk::intersectsRay(GLFix rx, GLFix ry, GLFix rz, GLFix dx, GLFix dy, GLFi
 void Chunk::generate()
 {
     //Everything air
-    std::fill(blocks[0][0] + 0, blocks[SIZE - 1][SIZE - 1] + SIZE, BLOCK_AIR);
-
+	std::fill(blocks[0][0] + 0, blocks[SIZE - 1][SIZE - 1] + SIZE, BLOCK_AIR);
     debug("Generating chunk %d:%d:%d...\t", x, y, z);
 
     const PerlinNoise &noise = world.noiseGenerator();

@@ -57,6 +57,7 @@ struct RGB24 {
     uint8_t b;
 } __attribute__((packed));
 
+#if 0
 static bool skip_space(FILE *file)
 {
     char c;
@@ -75,6 +76,7 @@ static bool skip_space(FILE *file)
     ungetc(c, file);
     return true;
 }
+#endif
 
 //PPM-Loader without support for ascii
 TEXTURE* loadTextureFromFile(const char* filename)
@@ -337,6 +339,12 @@ void drawTextureOverlay(const TEXTURE &src, const unsigned int src_x, const unsi
             const unsigned int b = (b_n + b_o) >> 1;
 
             *dest = (r << 0) | (g << 5) | (b << 10);
+#elif defined(N64)
+			/* No alpha transparency because i can't figure out that shit and besides, it has a small performance penalty */
+            const unsigned int r = (srcc >> 10) & 0b11111;
+            const unsigned int g = (srcc >> 5) & 0b11111;
+            const unsigned int b = (srcc >> 0) & 0b11111;
+            *dest = (r << 11) | (g << 6) | (b << 1) | (127 >> 7);
 #else
             const unsigned int r_o = (*dest >> 11) & 0b11111;
             const unsigned int g_o = (*dest >> 5) & 0b111111;

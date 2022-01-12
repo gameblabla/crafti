@@ -70,10 +70,10 @@ BlockListTask::BlockListTask()
 	blocklist_top = (SCREEN_HEIGHT - blocklist_height - current_inventory.height()) / 2;
     static_assert(field_width * fields_x <= SCREEN_WIDTH, "fields_x too high");
     static_assert(fields_x * fields_y >= sizeof(user_selectable)/sizeof(*user_selectable), "Not enough fields");
-#ifndef NDEBUG
+
     if(blocklist_height + current_inventory.height() > SCREEN_WIDTH)
         printf("fields_y too high\n");
-#endif
+
     blocklist_background = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT, 0, false);
 }
 

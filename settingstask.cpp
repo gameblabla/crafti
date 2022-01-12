@@ -40,16 +40,21 @@ SettingsTask::SettingsTask()
     settings.push_back({"World", world_static_values, 2, 1, 0, 1});
     settings.push_back({"Show FPS", fastmode_values, 2, 0, 0, 1});
 
+	#ifdef MENU_GRAPH
     background = newTexture(background_width, background_height, 0, false);
+    #endif
 }
 
 SettingsTask::~SettingsTask()
 {
+	#ifdef MENU_GRAPH
     deleteTexture(background);
+    #endif
 }
 
 void SettingsTask::makeCurrent()
 {
+	#ifdef MENU_GRAPH
     if(!background_saved)
         saveBackground();
 
@@ -58,10 +63,12 @@ void SettingsTask::makeCurrent()
     changed_something = false;
 
     Task::makeCurrent();
+    #endif
 }
 
 void SettingsTask::render()
 {
+	#ifdef MENU_GRAPH
     drawBackground();
 
     const unsigned int x = (SCREEN_WIDTH - background->width) / 2;
@@ -93,11 +100,12 @@ void SettingsTask::render()
 
         y += fontHeight() + 5;
     }
-
+	#endif
 }
 
 void SettingsTask::logic()
 {
+	#ifdef MENU_GRAPH
     if(key_held_down)
         key_held_down = keyPressed(KEY_NSPIRE_ESC) || keyPressed(KEY_NSPIRE_UP) || keyPressed(KEY_NSPIRE_DOWN) || keyPressed(KEY_NSPIRE_2) || keyPressed(KEY_NSPIRE_8) || keyPressed(KEY_NSPIRE_LEFT) || keyPressed(KEY_NSPIRE_4) || keyPressed(KEY_NSPIRE_RIGHT) || keyPressed(KEY_NSPIRE_6);
     else if(keyPressed(KEY_NSPIRE_ESC))
@@ -154,6 +162,7 @@ void SettingsTask::logic()
 
         key_held_down = true;
     }
+    #endif
 }
 
 unsigned int SettingsTask::getValue(unsigned int entry) const
@@ -163,6 +172,7 @@ unsigned int SettingsTask::getValue(unsigned int entry) const
 
 bool SettingsTask::loadFromFile(FILE *file)
 {
+	#ifdef MENU_GRAPH
     //World doesn't care about DISTANCE being saved and loaded here as well
 
     unsigned int size;
@@ -182,12 +192,16 @@ bool SettingsTask::loadFromFile(FILE *file)
     world.setDirty();
 
     nglSetNearPlane(settings[NEARPLANE_Z].current_value);
-
+	
     return true;
+    #else
+    return false;
+    #endif
 }
 
 bool SettingsTask::saveToFile(FILE *file)
 {
+	#ifdef MENU_GRAPH
     unsigned int size = settings.size();
     if(fwrite(&size, sizeof(size), 1, file) != 1)
         return false;
@@ -199,4 +213,7 @@ bool SettingsTask::saveToFile(FILE *file)
     }
 
     return true;
+    #else
+    return false;
+    #endif
 }

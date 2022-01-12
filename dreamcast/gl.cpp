@@ -28,8 +28,6 @@ static const TEXTURE *texture;
 static unsigned int vertices_count = 0;
 static VERTEX vertices[4];
 static GLDrawMode draw_mode = GL_TRIANGLES;
-static bool is_monochrome;
-static COLOR *screen_inverted; //For monochrome calcs
 #ifdef FPS_COUNTER
     volatile unsigned int fps;
 #endif
@@ -67,8 +65,6 @@ void nglUninit()
     uninit_fastmath();
     delete[] transformation;
     delete[] z_buffer;
-
-    delete[] screen_inverted;
     
     free(real_buffer);
 
@@ -331,7 +327,11 @@ void nglRotateZ(const GLFix a)
     nglMultMatMat(transformation, &rot);
 }
 
-inline void pixel(const int x, const int y, const GLFix z, const COLOR c)
+
+#define pixel(x,y,z,c) z_buffer[x + y*SCREEN_WIDTH] = z; screen[x + y*SCREEN_WIDTH] = c;
+
+/*
+static inline void pixel(const int x, const int y, const GLFix z, const COLOR c)
 {
     if(x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
         return;
@@ -344,7 +344,7 @@ inline void pixel(const int x, const int y, const GLFix z, const COLOR c)
     z_buffer[pitch] = z;
 
     screen[pitch] = c;
-}
+}*/
 
 RGB rgbColor(const COLOR c)
 {
@@ -371,9 +371,10 @@ COLOR colorRGB(const GLFix r, const GLFix g, const GLFix b)
 
 GLFix nglZBufferAt(const unsigned int x, const unsigned int y)
 {
+/*
     if(x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
         return 0;
-
+*/
     return z_buffer[x + y * SCREEN_WIDTH];
 }
 
@@ -775,6 +776,9 @@ void nglAddVertex(const VERTEX* vertex)
 
     switch(draw_mode)
     {
+		default:
+		
+		break;
     case GL_TRIANGLES:
         if(vertices_count != 3)
             break;
@@ -806,8 +810,8 @@ void nglAddVertex(const VERTEX* vertex)
             nglDrawTriangle(&vertices[2], &vertices[3], &vertices[0], false);
 #endif
         break;
-
-    case GL_QUAD_STRIP:
+	// Not used 
+    /*case GL_QUAD_STRIP:
         if(vertices_count != 4)
             break;
 
@@ -835,7 +839,7 @@ void nglAddVertex(const VERTEX* vertex)
         nglDrawLine3D(&vertices[0], &vertices[1]);
 
         vertices[0] = vertices[1];
-        break;
+        break;*/
     }
 }
 
