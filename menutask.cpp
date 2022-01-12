@@ -12,16 +12,21 @@ MenuTask menu_task;
 
 MenuTask::MenuTask()
 {
+	#ifdef MENU_GRAPH
      menu_with_selection = newTexture(menu.width, menu.height);
+    #endif
 }
 
 MenuTask::~MenuTask()
 {
+	#ifdef MENU_GRAPH
     deleteTexture(menu_with_selection);
+    #endif
 }
 
 void MenuTask::makeCurrent()
 {
+	#ifdef MENU_GRAPH
     menu_open = true;
     menu_width_visible = 0;
     menu_selected_item = SAVE_WORLD;
@@ -30,10 +35,12 @@ void MenuTask::makeCurrent()
         saveBackground();
 
     Task::makeCurrent();
+    #endif
 }
 
 void MenuTask::render()
 {
+	#ifdef MENU_GRAPH
     drawBackground();
 
     copyTexture(menu, *menu_with_selection);
@@ -43,10 +50,12 @@ void MenuTask::render()
     drawTexture(selection, *menu_with_selection, 0, 0, selection.width, selection.height, 23, selection_y[menu_selected_item], selection.width, selection.height);
 
     drawTexture(*menu_with_selection, *screen, 0, 0, menu_width_visible, menu_with_selection->height, SCREEN_WIDTH - menu_width_visible, 0, menu_width_visible, menu_with_selection->height);
+    #endif
 }
 
 void MenuTask::logic()
 {
+	#ifdef MENU_GRAPH
     //Slide menu
     if(menu_open && static_cast<unsigned int>(menu_width_visible) < menu_with_selection->width)
         menu_width_visible += 10;
@@ -105,13 +114,17 @@ void MenuTask::logic()
             break;
 
         case LOAD_WORLD:
-            load();
-            world_task.setMessage("World loaded.");
+            if(load())
+                world_task.setMessage("World loaded.");
+            else
+                world_task.setMessage("World failed to load.");
             break;
 
         case SAVE_WORLD:
-            save();
-            world_task.setMessage("World saved.");
+            if(save())
+                world_task.setMessage("World saved.");
+            else
+                world_task.setMessage("Failed to save world.");
             break;
 
         case EXIT:
@@ -127,9 +140,10 @@ void MenuTask::logic()
         menu_open = false;
         key_held_down = true;
     }
-    else if(keyPressed(KEY_NSPIRE_MENU) || keyPressed(KEY_NSPIRE_ESC) )
+    else if(keyPressed(KEY_NSPIRE_MENU) || keyPressed(KEY_NSPIRE_ESC))
     {
         menu_open = false;
         key_held_down = true;
     }
+    #endif
 }

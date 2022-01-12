@@ -32,9 +32,10 @@ kbd_state_t* first_kbd_state;
 extern int rv;
 extern unsigned char key_g[5];
 
+extern void* real_buffer;
+
 bool Task::keyPressed(int key)
 {
-#ifdef DREAMCAST
 	if (state)
 	{
 		switch (key)
@@ -156,7 +157,6 @@ bool Task::keyPressed(int key)
 		if (key_g[1] == 1 && key == CONT_DPAD_LEFT) return true;
 		if (key_g[0] == 1 && key == CONT_DPAD_RIGHT) return true;
 	}
-#endif
 	return false;
 }
 
@@ -164,13 +164,25 @@ void Task::initializeGlobals(const char *savefile)
 {
     running = true;
 
-    screen = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
+	screen = new TEXTURE;
+	screen->width = SCREEN_WIDTH,
+	screen->height = SCREEN_HEIGHT,
+	screen->has_transparency = false,
+	screen->transparent_color = 0,
+	screen->bitmap = (COLOR*)real_buffer;
+    //screen = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
     nglSetBuffer(screen->bitmap);
 
     has_touchpad = is_touchpad;
     keys_inverted = is_classic;
 
-    background = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
+	background = new TEXTURE;
+	background->width = SCREEN_WIDTH,
+	background->height = SCREEN_HEIGHT,
+	background->has_transparency = false,
+	background->transparent_color = 0,
+	background->bitmap = (COLOR*)real_buffer;
+    //background = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
     background_saved = false;
 
     Task::savefile = savefile;
@@ -179,11 +191,13 @@ void Task::initializeGlobals(const char *savefile)
 void Task::deinitializeGlobals()
 {
     deleteTexture(screen);
+    deleteTexture(background);
 }
 
 void Task::saveBackground()
 {
     copyTexture(*screen, *background);
+
     background_saved = true;
 }
 
@@ -199,7 +213,7 @@ static constexpr int savefile_version = 5;
 
 bool Task::load()
 {
-   /* FILE *file = fopen(savefile, "rb");
+    FILE *file = fopen(savefile, "rb");
     if(!file)
         return false;
 
@@ -218,6 +232,7 @@ bool Task::load()
     else if(version != 4)
     {
         printf("Wrong save file version %d!\n", version);
+        fclose(file);
         return false;
     }
 
@@ -235,13 +250,14 @@ bool Task::load()
 
     fclose(file);
 
-    return ret;*/
-        return false;
+    world.setPosition(world_task.x, world_task.y, world_task.z);
+
+    return ret;
 }
 
 bool Task::save()
 {
-   /* FILE *file = fopen(savefile, "wb");
+    FILE *file = fopen(savefile, "wb");
     if(!file)
         return false;
 
@@ -264,6 +280,5 @@ bool Task::save()
 
     fclose(file);
 
-    return ret;*/
-    return false;
+    return ret;
 }

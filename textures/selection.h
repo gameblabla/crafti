@@ -1,3 +1,4 @@
+#ifdef MENU_GRAPH
 //Generated from selection.png (output format: ngl)
 static uint16_t selection_data[] = {
 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
@@ -22,3 +23,4 @@ static TEXTURE selection{
 .has_transparency = true,
 .transparent_color = 0,
 .bitmap = selection_data };
+#endif

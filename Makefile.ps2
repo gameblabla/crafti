@@ -1,6 +1,6 @@
 AS	= mips64r5900el-ps2-elf-g++
 CXX	= mips64r5900el-ps2-elf-g++
-CXXFLAGS = -D_EE -O3 -fdata-sections -ffunction-sections -fsingle-precision-constant -fno-common -mno-abicalls -mno-xgot -flto -G0 -Wall -Isrc -std=gnu++17  -I ngl -I. -Ips2
+CXXFLAGS = -D_EE -Ofast -mno-fp-exceptions -mno-plt -msym32 -mframe-header-opt -mno-fix-r5900 -fdata-sections -ffunction-sections -fsingle-precision-constant -fno-common -mno-abicalls -mno-xgot -flto -G0 -Wall -Isrc -std=gnu++17  -Ingl -I. -Ips2
 CXXFLAGS += -I$(PS2DEV)/ps2sdk/ee/include -I$(PS2DEV)/ps2sdk/common/include -I$(GSKIT)/include -I$(PS2DEV)/ps2sdk/ports/include
 
 CXXFLAGS += -DBGR_TEXTURE -DPS2

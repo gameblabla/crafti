@@ -14,14 +14,14 @@ bool Task::key_held_down, Task::running, Task::background_saved, Task::has_touch
 TEXTURE *Task::screen, *Task::background;
 const char *Task::savefile;
 
-extern SDL_GameController *pad;
-
 void Task::makeCurrent()
 {
     current_task = this;
 }
 
+extern SDL_GameController *pad;
 extern unsigned char pad_game[14];
+extern volatile uint16_t *rgbx;
 
 bool Task::keyPressed(int key)
 {
@@ -81,14 +81,19 @@ bool Task::keyPressed(int key)
 void Task::initializeGlobals(const char *savefile)
 {
     running = true;
-
-    screen = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
+	screen = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
     nglSetBuffer(screen->bitmap);
 
     has_touchpad = is_touchpad;
     keys_inverted = is_classic;
 
-    background = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
+	background = new TEXTURE;
+	background->width = SCREEN_WIDTH,
+	background->height = SCREEN_HEIGHT,
+	background->has_transparency = false,
+	background->transparent_color = 0,
+	background->bitmap = screen->bitmap;
+    //background = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
     background_saved = false;
 
     Task::savefile = savefile;
@@ -97,11 +102,13 @@ void Task::initializeGlobals(const char *savefile)
 void Task::deinitializeGlobals()
 {
     deleteTexture(screen);
+    deleteTexture(background);
 }
 
 void Task::saveBackground()
 {
     copyTexture(*screen, *background);
+
     background_saved = true;
 }
 
@@ -117,7 +124,7 @@ static constexpr int savefile_version = 5;
 
 bool Task::load()
 {
-	FILE *file = fopen(savefile, "rb");
+    FILE *file = fopen(savefile, "rb");
     if(!file)
         return false;
 
@@ -136,6 +143,7 @@ bool Task::load()
     else if(version != 4)
     {
         printf("Wrong save file version %d!\n", version);
+        fclose(file);
         return false;
     }
 
@@ -153,12 +161,14 @@ bool Task::load()
 
     fclose(file);
 
+    world.setPosition(world_task.x, world_task.y, world_task.z);
+
     return ret;
 }
 
 bool Task::save()
 {
-	FILE *file = fopen(savefile, "wb");
+    FILE *file = fopen(savefile, "wb");
     if(!file)
         return false;
 

@@ -15,11 +15,9 @@
         SCR_320x240_8=4,
         SCR_TYPE_COUNT=5
     } scr_type_t;
-   
 
     #define lcd_type(x) SCR_320x240_565
 
-    //#define isKeyPressed(x) keystate[x]
     #define isKeyPressed(x) 0
     #define is_classic 0
     #define is_cx 1
@@ -65,7 +63,8 @@
     #define KEY_(row, col) {row, col, row, col, TPAD_ARROW_NONE}
     #define KEYTPAD_(row, col, tpad_row, tpad_col) {row, col, tpad_row, tpad_col, TPAD_ARROW_NONE}
     #define KEYTPAD_ARROW_(row, col, tpad_arrow) {row, col, row, col, tpad_arrow}
-    
+
+    /* Used to fill up a nonexistent key on a model */
 	#define 	CONT_C   (1<<0)
 	#define 	CONT_B   (1<<1)
 	#define 	CONT_A   (1<<2)
@@ -122,8 +121,6 @@
     #define KEY_NSPIRE_0 0
     
     #define KEY_NSPIRE_CTRL 0
-
-
 
     #endif // !KEYS_H
 

@@ -3,9 +3,6 @@
 
 #include "blockrenderer.h"
 
-static constexpr GLFix door_depth = 3; //As small as possible, a opened door shouldn't be much of an obstacle
-static constexpr uint8_t DOOR_TOP = 1 << 3, DOOR_OPEN = 1 << 4, DOOR_FORCE_OPEN = 1 << 5; //FORCE_OPEN: Opened by hand, not redstone
-
 class DoorRenderer : public BlockRenderer
 {
 public:
@@ -26,10 +23,15 @@ public:
     virtual void addedBlock(const BLOCK_WDATA block, int local_x, int local_y, int local_z, Chunk &c) override;
     virtual void removedBlock(const BLOCK_WDATA block, int local_x, int local_y, int local_z, Chunk &c) override;
 
+    virtual PowerState powersSide(const BLOCK_WDATA block, BLOCK_SIDE side) override;
+
     virtual const char* getName(const BLOCK_WDATA) override;
 
 protected:
     void toggleState(const BLOCK_WDATA block, int local_x, int local_y, int local_z, Chunk &c, const uint8_t open_state);
+
+    static constexpr GLFix door_depth = 3; //As small as possible, a opened door shouldn't be much of an obstacle
+    static constexpr uint8_t DOOR_TOP = 1 << 3, DOOR_OPEN = 1 << 4, DOOR_FORCE_OPEN = 1 << 5; //FORCE_OPEN: Opened by hand, not redstone
 };
 
 #endif // DOORRENDERER_H

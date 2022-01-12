@@ -1,7 +1,7 @@
 XBE_TITLE = crafti
 GEN_XISO = $(XBE_TITLE).iso
 
-CXXFLAGS += -I ngl -I. -Ixbox -DXBOX -ftree-vectorize -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -O3 -fno-common -fomit-frame-pointer -pipe -march=pentium3 -mtune=pentium3 -msse -flto  -s
+CXXFLAGS += -Ingl -I. -Ixbox -DXBOX -ftree-vectorize -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -O3 -fno-common -fomit-frame-pointer -pipe -march=pentium3 -mtune=pentium3 -msse -flto 
 LDFLAGS += -flto -s -Wl,--gc-sections
 OUTPUT = crafti.elf
 

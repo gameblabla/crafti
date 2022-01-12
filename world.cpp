@@ -26,9 +26,7 @@ void World::generateSeed()
     unsigned int *old_seed = seed;
     seed = static_cast<unsigned int*>(malloc(sizeof(*seed)));
     free(old_seed);
-    #ifdef DEBUG
-    printf("Seed: %d\n", *seed);
-    #endif
+    //printf("Seed: %d\n", *seed);
     perlin_noise.setSeed(*seed);
 }
 
@@ -202,7 +200,10 @@ void World::setDirty()
 
 bool World::loadFromFile(FILE *file)
 {
-    //drawLoadingtext(1);
+	#if 0
+    drawLoadingtext(1);
+
+    clear();
 
     LOAD_FROM_FILE(*seed)
     perlin_noise.setSeed(*seed);
@@ -221,6 +222,7 @@ bool World::loadFromFile(FILE *file)
         int x, y, z;
         if(fread(&x, sizeof(x), 1, file) != 1)
             return feof(file);
+
         LOAD_FROM_FILE(y)
         LOAD_FROM_FILE(z)
 
@@ -232,11 +234,15 @@ bool World::loadFromFile(FILE *file)
         }
         all_chunks.insert({std::tuple<int,int,int>(x, y, z), c});
     }
+    #else
+    return false;
+    #endif
 }
 
 bool World::saveToFile(FILE *file) const
 {
-    //drawLoadingtext(1);
+	#if 0
+    drawLoadingtext(1);
 
     SAVE_TO_FILE(*seed)
 
@@ -259,6 +265,9 @@ bool World::saveToFile(FILE *file) const
     }
 
     return true;
+    #else
+    return false;
+    #endif
 }
 
 void World::render()

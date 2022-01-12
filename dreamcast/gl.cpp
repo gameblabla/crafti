@@ -5,9 +5,7 @@
 #ifdef _TINSPIRE
 #include <libndls.h>
 #else
-//#include <SDL/SDL.h>
 #include <assert.h>
-//static SDL_Surface *scr;
 #endif
 
 #include <kos.h>
@@ -30,14 +28,14 @@ static const TEXTURE *texture;
 static unsigned int vertices_count = 0;
 static VERTEX vertices[4];
 static GLDrawMode draw_mode = GL_TRIANGLES;
-static bool is_monochrome;
-//static COLOR *screen_inverted; //For monochrome calcs
 #ifdef FPS_COUNTER
     volatile unsigned int fps;
 #endif
 #ifdef SAFE_MODE
-    static int matrix_stack_left = MATRIX_STACK_SIZE;
+	static int matrix_stack_left = MATRIX_STACK_SIZE;
 #endif
+
+void* real_buffer;
 
 void nglInit()
 {
@@ -54,28 +52,12 @@ void nglInit()
     vertices_count = 0;
     draw_mode = GL_TRIANGLES;
 
-    #ifdef _TINSPIRE
-        is_monochrome = lcd_type() == SCR_320x240_4;
+    vid_set_mode(DM_320x240, PM_RGB565);
+    real_buffer = memalign(32, (SCREEN_HEIGHT*SCREEN_WIDTH)*2);
 
-        if(is_monochrome)
-        {
-            screen_inverted = new COLOR[SCREEN_WIDTH*SCREEN_HEIGHT];
-            lcd_init(SCR_320x240_16);
-        }
-        else
-            lcd_init(SCR_320x240_565);
-    #else
-		vid_set_mode(DM_320x240, PM_RGB565);
-        /*SDL_Init(SDL_INIT_VIDEO);
-        scr = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 16, SDL_HWSURFACE  );
-		SDL_ShowCursor(0);
-		SDL_WM_GrabInput(SDL_GRAB_ON);
-        assert(scr);*/
-    #endif
-
-    #ifdef SAFE_MODE
-        matrix_stack_left = MATRIX_STACK_SIZE;
-    #endif
+	#ifdef SAFE_MODE
+	matrix_stack_left = MATRIX_STACK_SIZE;
+	#endif
 }
 
 void nglUninit()
@@ -83,15 +65,12 @@ void nglUninit()
     uninit_fastmath();
     delete[] transformation;
     delete[] z_buffer;
-
     
+    free(real_buffer);
 
     #ifdef _TINSPIRE
-		delete[] screen_inverted;
         lcd_init(SCR_TYPE_INVALID);
     #else
-		/*if (scr) SDL_FreeSurface(scr);
-		SDL_Quit();*/
         //TODO
     #endif
 }
@@ -157,7 +136,7 @@ void nglPerspective(VERTEX *v)
     v->x = new_x;
     v->y = new_y;
 #else
-    GLFix div = near_plane/v->z;
+    auto div = Fix<12, int32_t>(near_plane)/v->z.toInteger<int>();
 
     //Round to integers, as we don't lose the topmost bits with integer multiplication
     v->x = div * v->x.toInteger<int>();
@@ -170,33 +149,31 @@ void nglPerspective(VERTEX *v)
 
     v->y = GLFix(SCREEN_HEIGHT - 1) - v->y;
 
-#if defined(SAFE_MODE) && defined(TEXTURE_SUPPORT)
     //TODO: Move this somewhere else
-    if(!texture)
-        return;
+    /*if(!texture)
+        return;*/
 
     if(v->u > GLFix(texture->width))
     {
-        printf("Warning: Texture coord out of bounds!\n");
+       // printf("Warning: Texture coord out of bounds!\n");
         v->u = texture->height;
     }
     else if(v->u < GLFix(0))
     {
-        printf("Warning: Texture coord out of bounds!\n");
+        //printf("Warning: Texture coord out of bounds!\n");
         v->u = 0;
     }
 
     if(v->v > GLFix(texture->height))
     {
-        printf("Warning: Texture coord out of bounds!\n");
+        //printf("Warning: Texture coord out of bounds!\n");
         v->v = texture->height;
     }
     else if(v->v < GLFix(0))
     {
-        printf("Warning: Texture coord out of bounds!\n");
+        //printf("Warning: Texture coord out of bounds!\n");
         v->v = 0;
     }
-#endif
 }
 
 void nglPerspective(VECTOR3 *v)
@@ -228,7 +205,7 @@ void nglPerspective(VECTOR3 *v)
 
 void nglSetBuffer(COLOR *screenBuf)
 {
-	screen = screenBuf;
+    screen = screenBuf;
 }
 
 extern mouse_state_t *mstate;
@@ -240,47 +217,12 @@ unsigned char key_g[5];
 
 void nglDisplay()
 {
-	int i,k;
-	int exit = 0;
-    #ifdef _TINSPIRE
-        if(is_monochrome)
-        {
-            //Flip everything, as 0xFFFF is white on CX, but black on classicz
-            COLOR *ptr = screen + SCREEN_HEIGHT*SCREEN_WIDTH, *ptr_inv = screen_inverted + SCREEN_HEIGHT*SCREEN_WIDTH;
-            while(--ptr >= screen)
-                *--ptr_inv = ~*ptr;
+	int i;
+	dcache_flush_range((uint32_t)screen,153600);
+	while (!pvr_dma_ready());
+	pvr_dma_transfer(screen, (uint32_t)vram_l, 153600,PVR_DMA_VRAM32,-1,NULL,NULL);
 
-            lcd_blit(screen_inverted, SCR_320x240_16);
-        }
-        else
-            lcd_blit(screen, SCR_320x240_565);
-    #else
-		//memcpy(vram_s, screen, 153600);
-		//sq_cpy(vram_l, screen, 153600);
-		dcache_flush_range((uint32_t)screen,153600);
-		while (!pvr_dma_ready());
-		pvr_dma_transfer(screen, (uint32_t)vram_l, 153600,PVR_DMA_VRAM32,-1,NULL,NULL);
-        /*SDL_LockSurface(scr);
-        memcpy(scr->pixels, screen, 153600);
-        SDL_UnlockSurface(scr);
-        SDL_Flip(scr);*/
-    #endif
-
-    #ifdef FPS_COUNTER
-        static unsigned int frames = 0;
-        ++frames;
-
-        static time_t last = 0;
-        time_t now = time(nullptr);
-        if(now != last)
-        {
-            fps = frames;
-            printf("FPS: %u\n", frames);
-            last = now;
-            frames = 0;
-        }
-    #endif
-    
+   
 	/* No need to check again if pointer exists. */
 	if (!cont)
 	{
@@ -320,6 +262,21 @@ void nglDisplay()
 			if (first_kbd_state->matrix[i] == 1) key_g[i-79] = 1;
 		}
 	}
+
+    #ifdef FPS_COUNTER
+        static unsigned int frames = 0;
+        ++frames;
+
+        static time_t last = 0;
+        time_t now = time(nullptr);
+        if(now != last)
+        {
+            fps = frames;
+            printf("FPS: %u\n", frames);
+            last = now;
+            frames = 0;
+        }
+    #endif
 }
 
 void nglRotateX(const GLFix a)
@@ -370,7 +327,11 @@ void nglRotateZ(const GLFix a)
     nglMultMatMat(transformation, &rot);
 }
 
-inline void pixel(const int x, const int y, const GLFix z, const COLOR c)
+
+#define pixel(x,y,z,c) z_buffer[x + y*SCREEN_WIDTH] = z; screen[x + y*SCREEN_WIDTH] = c;
+
+/*
+static inline void pixel(const int x, const int y, const GLFix z, const COLOR c)
 {
     if(x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
         return;
@@ -383,7 +344,7 @@ inline void pixel(const int x, const int y, const GLFix z, const COLOR c)
     z_buffer[pitch] = z;
 
     screen[pitch] = c;
-}
+}*/
 
 RGB rgbColor(const COLOR c)
 {
@@ -410,9 +371,10 @@ COLOR colorRGB(const GLFix r, const GLFix g, const GLFix b)
 
 GLFix nglZBufferAt(const unsigned int x, const unsigned int y)
 {
+/*
     if(x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
         return 0;
-
+*/
     return z_buffer[x + y * SCREEN_WIDTH];
 }
 
@@ -492,7 +454,6 @@ void nglDrawLine3D(const VERTEX *v1, const VERTEX *v2)
 static void interpolateVertexXLeft(const VERTEX *from, const VERTEX *to, VERTEX *res)
 {
     GLFix diff = to->x - from->x;
-
     GLFix end = 0;
     GLFix t = (end - from->x) / diff;
 
@@ -566,7 +527,6 @@ void nglDrawTriangleXRightZClipped(const VERTEX *low, const VERTEX *middle, cons
 static void interpolateVertexXRight(const VERTEX *from, const VERTEX *to, VERTEX *res)
 {
     GLFix diff = to->x - from->x;
-    
     GLFix end = (SCREEN_WIDTH - 1);
     GLFix t = (end - from->x) / diff;
 
@@ -605,17 +565,17 @@ void nglDrawTriangleZClipped(const VERTEX *low, const VERTEX *middle, const VERT
     const VERTEX* visible[3];
     int count_invisible = -1, count_visible = -1;
 
-    if(low->x >= GLFix(SCREEN_WIDTH))
+    if(low->x > GLFix(SCREEN_WIDTH-1))
         invisible[++count_invisible] = low;
     else
         visible[++count_visible] = low;
 
-    if(middle->x >= GLFix(SCREEN_WIDTH))
+    if(middle->x > GLFix(SCREEN_WIDTH-1))
         invisible[++count_invisible] = middle;
     else
         visible[++count_visible] = middle;
 
-    if(high->x >= GLFix(SCREEN_WIDTH))
+    if(high->x > GLFix(SCREEN_WIDTH-1))
         invisible[++count_invisible] = high;
     else
         visible[++count_visible] = high;
@@ -648,7 +608,6 @@ void nglDrawTriangleZClipped(const VERTEX *low, const VERTEX *middle, const VERT
     void nglInterpolateVertexZ(const VERTEX *from, const VERTEX *to, VERTEX *res)
     {
         GLFix diff = to->z - from->z;
-
         GLFix t = (GLFix(CLIP_PLANE) - from->z) / diff;
 
         res->x = from->x + (to->x - from->x) * t;
@@ -681,6 +640,14 @@ bool nglIsBackface(const VERTEX *v1, const VERTEX *v2, const VERTEX *v3)
     return x1 * y2 < x2 * y1;
 }
 
+bool nglIsBackface(const VECTOR3 *v1, const VECTOR3 *v2, const VECTOR3 *v3)
+{
+    int x1 = v2->x - v1->x, x2 = v3->x - v1->x;
+    int y1 = v2->y - v1->y, y2 = v3->y - v1->y;
+
+    return x1 * y2 < x2 * y1;
+}
+
 bool nglDrawTriangle(const VERTEX *low, const VERTEX *middle, const VERTEX *high, bool backface_culling)
 {
 #ifndef Z_CLIPPING
@@ -702,7 +669,7 @@ bool nglDrawTriangle(const VERTEX *low, const VERTEX *middle, const VERTEX *high
 #else
     if(low->z < GLFix(CLIP_PLANE) && middle->z < GLFix(CLIP_PLANE) && high->z < GLFix(CLIP_PLANE))
         return true;
-        
+
     VERTEX invisible[3];
     VERTEX visible[3];
     int count_invisible = -1, count_visible = -1;
@@ -809,6 +776,9 @@ void nglAddVertex(const VERTEX* vertex)
 
     switch(draw_mode)
     {
+		default:
+		
+		break;
     case GL_TRIANGLES:
         if(vertices_count != 3)
             break;
@@ -836,12 +806,12 @@ void nglAddVertex(const VERTEX* vertex)
         nglDrawLine3D(&vertices[2], &vertices[3]);
         nglDrawLine3D(&vertices[3], &vertices[0]);
 #else
-       if(nglDrawTriangle(&vertices[0], &vertices[1], &vertices[2], !texture || (vertices[0].c & TEXTURE_DRAW_BACKFACE) != TEXTURE_DRAW_BACKFACE))
+        if(nglDrawTriangle(&vertices[0], &vertices[1], &vertices[2]), !texture || (vertices[0].c & TEXTURE_DRAW_BACKFACE) != TEXTURE_DRAW_BACKFACE)
             nglDrawTriangle(&vertices[2], &vertices[3], &vertices[0], false);
 #endif
         break;
-
-    case GL_QUAD_STRIP:
+	// Not used 
+    /*case GL_QUAD_STRIP:
         if(vertices_count != 4)
             break;
 
@@ -853,7 +823,7 @@ void nglAddVertex(const VERTEX* vertex)
         nglDrawLine3D(&vertices[2], &vertices[3]);
         nglDrawLine3D(&vertices[3], &vertices[0]);
 #else
-        if(nglDrawTriangle(&vertices[0], &vertices[1], &vertices[2], !texture || (vertices[0].c & TEXTURE_DRAW_BACKFACE) != TEXTURE_DRAW_BACKFACE))
+        if(nglDrawTriangle(&vertices[0], &vertices[1], &vertices[2]), !texture || (vertices[0].c & TEXTURE_DRAW_BACKFACE) != TEXTURE_DRAW_BACKFACE)
             nglDrawTriangle(&vertices[2], &vertices[3], &vertices[0], false);
 #endif
 
@@ -869,7 +839,7 @@ void nglAddVertex(const VERTEX* vertex)
         nglDrawLine3D(&vertices[0], &vertices[1]);
 
         vertices[0] = vertices[1];
-        break;
+        break;*/
     }
 }
 
@@ -881,9 +851,8 @@ const TEXTURE *nglGetTexture()
 void glBindTexture(const TEXTURE *tex)
 {
     texture = tex;
-
 #ifdef SAFE_MODE
-    if(tex->has_transparency && tex->transparent_color != 0)
+    if(tex && tex->has_transparency && tex->transparent_color != 0)
         printf("Bound texture doesn't have black as transparent color!\n");
 #endif
 }
@@ -921,13 +890,34 @@ void glBegin(GLDrawMode mode)
     draw_mode = mode;
 }
 
+
+static inline void * memset_16bit(void *dest, const uint16_t val, size_t len)
+{
+  uint16_t * d = (uint16_t*)dest;
+  uint16_t * nextd = d + len;
+  asm volatile (
+    "clrs\n\t" // Align for parallelism (CO) - SH4a use "stc SR, Rn" instead with a dummy Rn
+    "dt %[size]\n" // Decrement and test size here once to prevent extra jump (EX 1)
+  ".align 2\n"
+  "1:\n\t"
+    // *--nextd = val
+    "mov.w %[in], @-%[out]\n\t" // (LS 1/1)
+    "bf.s 1b\n\t" // (BR 1/2)
+    " dt %[size]\n" // (--len) ? 0 -> T : 1 -> T (EX 1)
+    : [out] "+r" ((uint32_t)nextd), [size] "+&r" (len) // outputs
+    : [in] "r" (val) // inputs
+    : "t", "memory" // clobbers
+  );
+  return dest;
+}
+
+
 void glClear(const int buffers)
 {
-    if(buffers & GL_COLOR_BUFFER_BIT)
-        std::fill(screen, screen + SCREEN_WIDTH*SCREEN_HEIGHT, color);
-
-    if(buffers & GL_DEPTH_BUFFER_BIT)
-		std::fill(z_buffer, z_buffer + SCREEN_WIDTH*SCREEN_HEIGHT, UINT16_MAX);
+	memset_16bit(screen, color,SCREEN_WIDTH*SCREEN_HEIGHT);
+	memset_16bit(z_buffer, UINT16_MAX,SCREEN_WIDTH*SCREEN_HEIGHT);
+	//std::fill(screen, screen + SCREEN_WIDTH*SCREEN_HEIGHT, color);
+	//std::fill(z_buffer, z_buffer + SCREEN_WIDTH*SCREEN_HEIGHT, UINT16_MAX);
 }
 
 void glLoadIdentity()
@@ -962,13 +952,13 @@ void glScale3f(const GLFix x, const GLFix y, const GLFix z)
 
 void glPopMatrix()
 {
-    #ifdef SAFE_MODE
-        if(matrix_stack_left == MATRIX_STACK_SIZE)
-        {
-            printf("Error: No matrix left on the stack anymore!\n");
-            return;
-        }
-        ++matrix_stack_left;
+	#ifdef SAFE_MODE
+    if(matrix_stack_left == MATRIX_STACK_SIZE)
+    {
+        printf("Error: No matrix left on the stack anymore!\n");
+        return;
+    }
+    ++matrix_stack_left;
     #endif
 
     --transformation;
@@ -976,13 +966,13 @@ void glPopMatrix()
 
 void glPushMatrix()
 {
-    #ifdef SAFE_MODE
-        if(matrix_stack_left == 0)
-        {
-            printf("Error: Matrix stack limit reached!\n");
-            return;
-        }
-        matrix_stack_left--;
+	#ifdef SAFE_MODE
+    if(matrix_stack_left == 0)
+    {
+        printf("Error: Matrix stack limit reached!\n");
+        return;
+    }
+    matrix_stack_left--;
     #endif
 
     ++transformation;

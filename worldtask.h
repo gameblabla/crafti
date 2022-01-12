@@ -6,9 +6,6 @@
 #include "gl.h"
 #include "aabb.h"
 
-
-static constexpr GLFix player_width = BLOCK_SIZE*0.8f, player_height = BLOCK_SIZE*1.8f, eye_pos = BLOCK_SIZE*1.6f;
-
 class WorldTask : public Task
 {
 public:
@@ -20,6 +17,8 @@ public:
     void resetWorld();
 
     GLFix x, y = World::HEIGHT * Chunk::SIZE * BLOCK_SIZE, z, xr, yr;
+
+    static constexpr GLFix player_width = BLOCK_SIZE*0.8f, player_height = BLOCK_SIZE*1.8f, eye_pos = BLOCK_SIZE*1.6f;
 
     void setMessage(const char *message);
 
@@ -44,6 +43,8 @@ private:
     VECTOR3 selection_pos; AABB::SIDE selection_side; VECTOR3 selection_pos_abs; bool do_test = true; //For intersectsRay
 
     char message[40]; unsigned int message_timeout = 0;
+
+    bool draw_inventory = true;
 };
 
 extern WorldTask world_task;

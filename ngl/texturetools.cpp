@@ -12,11 +12,6 @@ private:
     FILE *fp;
 };
 
-#ifdef PS2
-#include <gsKit.h>
-#include <malloc.h>
-#endif
-
 TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill, const bool transparent, const COLOR transparent_color)
 {
     // TODO: Don't leak on exception
@@ -24,12 +19,6 @@ TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill
 
     ret->width = w;
     ret->height = h;
-    
-    #ifdef PS2
-		extern GSTEXTURE bigtex;
-		ret->bitmap = (COLOR*)memalign(128, gsKit_texture_size_ee(bigtex.Width, bigtex.Height, bigtex.PSM));
-		if(fill != 0) std::fill(ret->bitmap, ret->bitmap + w * h, fill);
-    #else
     if(fill == 0)
         ret->bitmap = new COLOR[w * h]{fill};
     else
@@ -37,7 +26,6 @@ TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill
         ret->bitmap = new COLOR[w * h];
         std::fill(ret->bitmap, ret->bitmap + w * h, fill);
     }
-    #endif
 
     ret->has_transparency = transparent;
     ret->transparent_color = transparent_color;
@@ -47,24 +35,19 @@ TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill
 
 void deleteTexture(TEXTURE *tex)
 {
-	#ifdef PS2
-	free(tex->bitmap);
-	#else
     delete[] tex->bitmap;
-    #endif
     delete tex;
 }
 
 void copyTexture(const TEXTURE &src, TEXTURE &dest)
 {
-    #ifdef SAFE_MODE
-        if(src.width != dest.width || src.height != dest.height)
-        {
-            puts("Error: textures don't have the same resolution!");
-            return;
-        }
-    #endif
-
+#ifndef NDEBUG
+    if(src.width != dest.width || src.height != dest.height)
+    {
+        puts("Error: textures don't have the same resolution!");
+        return;
+    }
+#endif
     std::copy(src.bitmap, src.bitmap + src.width*src.height, dest.bitmap);
 }
 
@@ -74,23 +57,31 @@ struct RGB24 {
     uint8_t b;
 } __attribute__((packed));
 
+#if 0
 static bool skip_space(FILE *file)
 {
     char c;
+    bool in_comment = false;
     do {
         int i = getc(file);
         if(i == EOF)
             return false;
+        if(i == '#')
+            in_comment = true;
+        if(i == '\n')
+            in_comment = false;
         c = i;
-    } while(c == '\n' || c == '\r' || c == '\t' || c == ' ');
+    } while(in_comment || c == '\n' || c == '\r' || c == '\t' || c == ' ');
 
     ungetc(c, file);
     return true;
 }
+#endif
 
 //PPM-Loader without support for ascii
 TEXTURE* loadTextureFromFile(const char* filename)
 {
+#if 0
     FILE *texture_file = fopen(filename, "rb");
     if(!texture_file)
         return nullptr;
@@ -153,10 +144,14 @@ TEXTURE* loadTextureFromFile(const char* filename)
 
     delete[] buffer;
     return texture;
+#else
+	return NULL;
+#endif
 }
 
 bool saveTextureToFile(const TEXTURE &texture, const char *filename)
 {
+#if 0
     FILE *f = fopen(filename, "wb");
     if(!f)
         return false;
@@ -186,6 +181,9 @@ bool saveTextureToFile(const TEXTURE &texture, const char *filename)
     delete[] buffer24;
 
     return ret;
+#else
+	return false;
+#endif
 }
 
 TextureAtlasEntry textureArea(const unsigned int x, const unsigned int y, const unsigned int w, const unsigned int h)
@@ -202,8 +200,10 @@ void drawTexture(const TEXTURE &src, TEXTURE &dest,
 				 uint16_t src_x, uint16_t src_y, uint16_t src_w, uint16_t src_h,
 				 uint16_t dest_x, uint16_t dest_y, uint16_t dest_w, uint16_t dest_h)
 {
+	#ifndef NDEBUG
 	if(src_x + src_w > src.width || src_y + src_h > src.height || dest_x + dest_w > dest.width || dest_y + dest_h > dest.height)
 		return;
+	#endif
 	
 	uint16_t *dest_ptr = dest.bitmap + dest_x + dest_y * dest.width;
 	const unsigned int dest_nextline = dest.width - dest_w;
@@ -298,12 +298,13 @@ void drawTexture(const TEXTURE &src, TEXTURE &dest,
 
 void drawTextureOverlay(const TEXTURE &src, const unsigned int src_x, const unsigned int src_y, TEXTURE &dest, const unsigned int dest_x, const unsigned int dest_y, unsigned int w, unsigned int h)
 {
+#ifndef NDEBUG
     if(dest_x >= dest.width || dest_y >= dest.height)
         return;
 
     if(src_x >= src.width || src_y >= src.height)
         return;
-
+#endif
     // Clip
     w = std::min(w, dest.width - dest_x);
     h = std::min(h, dest.height - dest_y);
@@ -316,14 +317,35 @@ void drawTextureOverlay(const TEXTURE &src, const unsigned int src_x, const unsi
 
     for(unsigned int i = h; i--;)
     {
-        for(unsigned int j = w; j--;)
+        for(unsigned int j = w ; j--;)
         {
             const COLOR srcc = *src_ptr++;
             COLOR *dest = dest_ptr++;
-            
+
             if(src.has_transparency && srcc == src.transparent_color)
                 continue;
 
+#ifdef BGR_TEXTURE
+            const unsigned int r_o = (*dest >> 0) & 0b11111;
+            const unsigned int g_o = (*dest >> 5) & 0b11111;
+            const unsigned int b_o = (*dest >> 10) & 0b11111;
+
+            const unsigned int r_n = (srcc >> 0) & 0b11111;
+            const unsigned int g_n = (srcc >> 5) & 0b11111;
+            const unsigned int b_n = (srcc >> 10) & 0b11111;
+            //Generate 50% opacity
+            const unsigned int r = (r_n + r_o) >> 1;
+            const unsigned int g = (g_n + g_o) >> 1;
+            const unsigned int b = (b_n + b_o) >> 1;
+
+            *dest = (r << 0) | (g << 5) | (b << 10);
+#elif defined(N64)
+			/* No alpha transparency because i can't figure out that shit and besides, it has a small performance penalty */
+            const unsigned int r = (srcc >> 10) & 0b11111;
+            const unsigned int g = (srcc >> 5) & 0b11111;
+            const unsigned int b = (srcc >> 0) & 0b11111;
+            *dest = (r << 11) | (g << 6) | (b << 1) | (127 >> 7);
+#else
             const unsigned int r_o = (*dest >> 11) & 0b11111;
             const unsigned int g_o = (*dest >> 5) & 0b111111;
             const unsigned int b_o = (*dest >> 0) & 0b11111;
@@ -331,13 +353,13 @@ void drawTextureOverlay(const TEXTURE &src, const unsigned int src_x, const unsi
             const unsigned int r_n = (srcc >> 11) & 0b11111;
             const unsigned int g_n = (srcc >> 5) & 0b111111;
             const unsigned int b_n = (srcc >> 0) & 0b11111;
-
             //Generate 50% opacity
             const unsigned int r = (r_n + r_o) >> 1;
             const unsigned int g = (g_n + g_o) >> 1;
             const unsigned int b = (b_n + b_o) >> 1;
 
             *dest = (r << 11) | (g << 5) | (b << 0);
+#endif
         }
 
         dest_ptr += nextline_dest;
@@ -349,13 +371,17 @@ TEXTURE* resizeTexture(const TEXTURE &src, const unsigned int w, const unsigned 
 {
     TEXTURE *ret = newTexture(w, h);
 
+	// Gameblabla - Is this really necesarry ?
+#ifndef NDEBUG
     if(w == src.width && h == src.height)
     {
         copyTexture(src, *ret);
         return ret;
     }
+#endif
 
     COLOR *ptr = ret->bitmap;
+
     for(unsigned int dsty = 0; dsty < h; dsty++)
         for(unsigned int dstx = 0; dstx < w; dstx++)
             *ptr++ = src.bitmap[(dstx * src.width / w) + (dsty * src.height / h) * src.width];
@@ -378,9 +404,10 @@ void greyscaleTexture(TEXTURE &tex)
 
 void drawRectangle(TEXTURE &tex, const unsigned int x, const unsigned int y, unsigned int w, unsigned int h, const COLOR c)
 {
+#ifndef NDEBUG
     if(x >= tex.width || y >= tex.height || w < 2 || h < 2)
         return;
-
+#endif
     w = std::min(w, tex.width - x);
     h = std::min(h, tex.height - y);
 

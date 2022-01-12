@@ -15,7 +15,6 @@ public:
 
     virtual void makeCurrent();
 
-    /*static bool keyPressed(const t_key &key);*/
     static bool keyPressed(int key);
 
     static void initializeGlobals(const char *savefile);

@@ -1,7 +1,8 @@
 CC	= kos-cc
 CXX	= kos-c++
 SH_DIRECTORY=/opt/toolchains/dc/sh-elf/bin/
-CXXFLAGS = -Ofast -flto -m4-single-only -fsingle-precision-constant -ftree-vectorize -fdata-sections -ffunction-sections -fargument-noalias-global -Isrc -std=c++11  -I ngl -I. -DNAOMI -Idreamcast
+CXXFLAGS = -Ofast -flto -m4-single-only -fsingle-precision-constant -ftree-vectorize -fdata-sections -ffunction-sections -fargument-noalias-global -Isrc -std=c++11  -Ingl -I. -DNAOMI -Idreamcast
+CXXFLAGS += -DNDEBUG -DDREAMCAST
 
 LDFLAGS = -nodefaultlibs -lc -lm -Wl,--as-needed -Wl,--gc-sections -s -flto
 

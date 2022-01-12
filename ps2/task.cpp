@@ -12,14 +12,13 @@ bool Task::key_held_down, Task::running, Task::background_saved, Task::has_touch
 TEXTURE *Task::screen, *Task::background;
 const char *Task::savefile;
 
-
-#include <gsKit.h>
-extern GSTEXTURE bigtex;
-	
 void Task::makeCurrent()
 {
     current_task = this;
 }
+
+#include <gsKit.h>
+extern GSTEXTURE bigtex;
 
 extern unsigned char pad_game[14];
 
@@ -100,11 +99,13 @@ void Task::initializeGlobals(const char *savefile)
 void Task::deinitializeGlobals()
 {
     deleteTexture(screen);
+    deleteTexture(background);
 }
 
 void Task::saveBackground()
 {
     copyTexture(*screen, *background);
+
     background_saved = true;
 }
 
@@ -120,8 +121,7 @@ static constexpr int savefile_version = 5;
 
 bool Task::load()
 {
-	#if 0
-	FILE *file = fopen(savefile, "rb");
+    FILE *file = fopen(savefile, "rb");
     if(!file)
         return false;
 
@@ -140,6 +140,7 @@ bool Task::load()
     else if(version != 4)
     {
         printf("Wrong save file version %d!\n", version);
+        fclose(file);
         return false;
     }
 
@@ -157,16 +158,14 @@ bool Task::load()
 
     fclose(file);
 
+    world.setPosition(world_task.x, world_task.y, world_task.z);
+
     return ret;
-    #else
-    return false;
-    #endif
 }
 
 bool Task::save()
 {
-	#if 0
-	FILE *file = fopen(savefile, "wb");
+    FILE *file = fopen(savefile, "wb");
     if(!file)
         return false;
 
@@ -190,7 +189,4 @@ bool Task::save()
     fclose(file);
 
     return ret;
-    #else
-    return false;
-    #endif
 }

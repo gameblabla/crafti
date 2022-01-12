@@ -4,7 +4,7 @@
 
 void WheatRenderer::renderSpecialBlock(const BLOCK_WDATA block, GLFix x, GLFix y, GLFix z, Chunk &c)
 {
-    BlockRenderer::renderBillboard((x - c.absX()) / BLOCK_SIZE, (y - c.absY()) / BLOCK_SIZE, (z - c.absZ()) / BLOCK_SIZE, terrain_atlas[8 + getBLOCKDATA(block)][5].current, c);
+    BlockRenderer::renderBillboard(x / BLOCK_SIZE, y / BLOCK_SIZE, z / BLOCK_SIZE, terrain_atlas[8 + getBLOCKDATA(block)][5].current, c);
 }
 
 AABB WheatRenderer::getAABB(const BLOCK_WDATA block, GLFix x, GLFix y, GLFix z)
@@ -40,6 +40,11 @@ void WheatRenderer::addedBlock(const BLOCK_WDATA /*block*/, int local_x, int loc
 {
     if(!isIrrigated(local_x, local_y, local_z, c))
         return c.setLocalBlock(local_x, local_y, local_z, BLOCK_AIR);
+}
+
+PowerState WheatRenderer::powersSide(const BLOCK_WDATA /*block*/, BLOCK_SIDE /*side*/)
+{
+    return PowerState::NotPowered;
 }
 
 const char *WheatRenderer::getName(const BLOCK_WDATA)

@@ -2,6 +2,8 @@
 
 #include "worldtask.h"
 
+constexpr GLFix PressurePlateRenderer::height;
+
 void PressurePlateRenderer::renderSpecialBlock(const BLOCK_WDATA block, GLFix x, GLFix y, GLFix z, Chunk &c)
 {
     const TextureAtlasEntry &tex = terrain_atlas[3][getPOWERSTATE(block) ? 9 : 8].current;
@@ -37,6 +39,17 @@ void PressurePlateRenderer::tick(const BLOCK_WDATA block, int local_x, int local
         else
             c.setLocalBlock(local_x, local_y, local_z, getBLOCKWDATAPower(block, 0, false), true);
     }
+}
+
+PowerState PressurePlateRenderer::powersSide(const BLOCK_WDATA block, BLOCK_SIDE side)
+{
+    if(!getPOWERSTATE(block))
+        return PowerState::NotPowered;
+
+    if(side == BLOCK_BOTTOM)
+        return PowerState::StronglyPowered;
+
+    return PowerState::Powered;
 }
 
 void PressurePlateRenderer::drawPreview(const BLOCK_WDATA /*block*/, TEXTURE &dest, int x, int y)

@@ -175,5 +175,7 @@ void AABB::render()
 
 void AABB::print()
 {
+	#ifndef NDEBUG
     printf("X: %d-%d Y: %d-%d Z: %d-%d", low_x.toInteger<int>(), high_x.toInteger<int>(), low_y.toInteger<int>(), high_y.toInteger<int>(), low_z.toInteger<int>(), high_z.toInteger<int>());
+    #endif
 }

@@ -3,8 +3,6 @@
 
 #include "blockrenderer.h"
 
-constexpr static GLFix height = BLOCK_SIZE / 16;
-
 class PressurePlateRenderer : public DumbBlockRenderer
 {
 public:
@@ -19,7 +17,12 @@ public:
 
     virtual void tick(const BLOCK_WDATA, int local_x, int local_y, int local_z, Chunk &c) override;
 
+    virtual PowerState powersSide(const BLOCK_WDATA block, BLOCK_SIDE side) override;
+
     virtual const char* getName(const BLOCK_WDATA) override;
+
+protected:
+    constexpr static GLFix height = BLOCK_SIZE / 16;
 
 };
 
