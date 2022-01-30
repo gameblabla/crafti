@@ -1,0 +1,27 @@
+CXX	= /opt/funkey-toolchain/bin/arm-linux-g++
+CXXFLAGS = -Ofast -DNDEBUG -Isrc -Ingl -I. -Ipc -std=gnu++17 -DFUNKEYS -DNOJOY -D_256 -DLOW_RES_REMOVE=10 -flto
+
+#Including OPUS Libraries
+LDFLAGS = -lSDL_mixer -logg -lvorbisidec -lmikmod -lmpg123 -lc -lm -lstdc++ -lSDL -lasound -flto -s
+
+DEFINES = -Wall
+OUTPUT = crafti.elf
+
+OBJS += $(patsubst %.cpp, %.o, $(shell find . -name \*.cpp))
+
+SRCDIR		= ./ ./pc ./ngl
+VPATH		= $(SRCDIR)
+SRC_C		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
+SRC_CP		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.cpp))
+OBJ_C		= $(notdir $(patsubst %.c, %.o, $(SRC_C)))
+OBJ_CP		= $(notdir $(patsubst %.cpp, %.o, $(SRC_CP)))
+OBJS		= $(OBJ_C) $(OBJ_CP)
+
+all: ${OUTPUT}
+
+${OUTPUT}: ${OBJS}
+	${CXX} ${CXXFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS} ${DEFINES} 
+
+	
+clean:
+	rm *.o *.img src/*.o src/sdl/*.o src/dc/*.o src/enemies/*.o ${OUTPUT} *.BIN *.iso *.mds *.mdf *.obj ./xbox/*.obj ./ngl/*.obj *.d ./xbox/*.d ./ngl/*.d *.exe

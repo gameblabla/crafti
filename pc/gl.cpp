@@ -33,6 +33,10 @@ static COLOR *screen_inverted; //For monochrome calcs
     volatile unsigned int fps;
 #endif
 static int matrix_stack_left = MATRIX_STACK_SIZE;
+Uint32 start;
+
+#define FPS_VIDEO 60
+const float real_FPS = 1000/FPS_VIDEO;
 
 void nglInit()
 {
@@ -72,6 +76,7 @@ void nglInit()
     #endif
 
     matrix_stack_left = MATRIX_STACK_SIZE;
+	start = SDL_GetTicks();
 }
 
 void nglUninit()
@@ -169,23 +174,23 @@ void nglPerspective(VERTEX *v)
 
     if(v->u > GLFix(texture->width))
     {
-        printf("Warning: Texture coord out of bounds!\n");
+        //printf("Warning: Texture coord out of bounds!\n");
         v->u = texture->height;
     }
     else if(v->u < GLFix(0))
     {
-        printf("Warning: Texture coord out of bounds!\n");
+        //printf("Warning: Texture coord out of bounds!\n");
         v->u = 0;
     }
 
     if(v->v > GLFix(texture->height))
     {
-        printf("Warning: Texture coord out of bounds!\n");
+        //printf("Warning: Texture coord out of bounds!\n");
         v->v = texture->height;
     }
     else if(v->v < GLFix(0))
     {
-        printf("Warning: Texture coord out of bounds!\n");
+        //printf("Warning: Texture coord out of bounds!\n");
         v->v = 0;
     }
 }
@@ -241,6 +246,11 @@ void nglDisplay()
         std::copy(screen, screen + SCREEN_HEIGHT*SCREEN_WIDTH, reinterpret_cast<COLOR*>(scr->pixels));
         SDL_UnlockSurface(scr);
         SDL_UpdateRect(scr, 0, 0, 0, 0);
+        
+        #ifndef NOFRAMELIMIT
+		while(real_FPS > SDL_GetTicks()-start) SDL_Delay(real_FPS-(SDL_GetTicks()-start));
+		start = SDL_GetTicks();
+		#endif
     #endif
 
     #ifdef FPS_COUNTER

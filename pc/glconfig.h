@@ -15,6 +15,8 @@
 
 //#define FPS_COUNTER
 
+//#define LOW_RES_REMOVE 1
+
 #if defined(TEXTURE_SUPPORT) && defined(INTERPOLATE_COLORS)
 #error "Colors and textures cannot be used simultaneously!"
 #endif

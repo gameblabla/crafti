@@ -76,8 +76,8 @@
     #define KEY_NSPIRE_6 SDLK_BACKSPACE*/
     
 #ifdef NOJOY
-	#define KEY_NSPIRE_4 SDLK_BACKSPACE
-    #define KEY_NSPIRE_6 SDLK_TAB
+	#define KEY_NSPIRE_4 0
+    #define KEY_NSPIRE_6 0
 #else
 	#define KEY_NSPIRE_4 0
     #define KEY_NSPIRE_6 0
