@@ -1,8 +1,19 @@
 CXX	= /opt/funkey-toolchain/bin/arm-linux-g++
-CXXFLAGS = -Ofast -DNDEBUG -Isrc -Ingl -I. -Ipc -std=gnu++17 -DFUNKEYS -DNOJOY -D_256 -DLOW_RES_REMOVE=10 -flto
+CXXFLAGS = -Ofast -DNDEBUG -Isrc -Ingl -I. -Ipc -std=gnu++17 -DFUNKEYS -DNOJOY -D_256 -DLOW_RES_REMOVE=10 -flto 
+CXXFLAGS		+= -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4
+
+ifeq ($(PROFILE), YES)
+CXXFLAGS 		+= -fprofile-generate=/mnt/ncrafti_profile
+endif
+ifeq ($(PROFILE), APPLY)
+CXXFLAGS 		+= -fprofile-use=./
+endif
 
 #Including OPUS Libraries
-LDFLAGS = -lSDL_mixer -logg -lvorbisidec -lmikmod -lmpg123 -lc -lm -lstdc++ -lSDL -lasound -flto -s
+LDFLAGS = -lSDL_mixer -logg -lvorbisidec -lmikmod -lmpg123 -lc -lm -lstdc++ -lSDL -lasound -Wl,--as-needed -Wl,--gc-sections -flto -s
+ifeq ($(PROFILE), YES)
+LDFLAGS += -lgcov
+endif
 
 DEFINES = -Wall
 OUTPUT = crafti.elf

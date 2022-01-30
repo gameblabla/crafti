@@ -35,7 +35,11 @@ static COLOR *screen_inverted; //For monochrome calcs
 static int matrix_stack_left = MATRIX_STACK_SIZE;
 Uint32 start;
 
+#ifdef FUNKEYS
+#define FPS_VIDEO 50
+#else
 #define FPS_VIDEO 60
+#endif
 const float real_FPS = 1000/FPS_VIDEO;
 
 void nglInit()

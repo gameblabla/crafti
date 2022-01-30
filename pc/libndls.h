@@ -84,14 +84,18 @@
 #endif
 
 #ifdef NOJOY
+    #ifdef FUNKEYS
+    #define KEY_NSPIRE_3 SDLK_RETURN
+    #define KEY_NSPIRE_1 SDLK_ESCAPE
+    #else
     #define KEY_NSPIRE_3 SDLK_ESCAPE
     #define KEY_NSPIRE_1 0
+    #endif
 #else
     #define KEY_NSPIRE_3 SDLK_BACKSPACE
     #define KEY_NSPIRE_1 SDLK_TAB
 #endif   
   
-    
 	#define KEY_NSPIRE_PERIOD SDLK_LSHIFT
 
 #ifdef NOJOY
