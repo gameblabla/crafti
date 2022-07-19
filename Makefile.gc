@@ -1,0 +1,111 @@
+#---------------------------------------------------------------------------------
+.SUFFIXES:
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(DEVKITPPC)),)
+$(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
+endif
+
+include $(DEVKITPPC)/gamecube_rules
+
+#---------------------------------------------------------------------------------
+# TARGET is the name of the output
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# INCLUDES is a list of directories containing extra header files
+#---------------------------------------------------------------------------------
+TARGET		:=	crafti
+
+#---------------------------------------------------------------------------------
+# any extra libraries we wish to link with the project
+#---------------------------------------------------------------------------------
+LIBS	:=	-Wl,--start-group -lc -lgxflux -lmodplay  -lfat -logc -lm -lstdc++ -laesnd -lasnd -Wl,--end-group -Wl,--gc-sections,--as-needed
+
+#---------------------------------------------------------------------------------
+# list of directories containing libraries, this must be the top level containing
+# include and lib
+#---------------------------------------------------------------------------------
+LIBDIRS	:=
+
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+CFLAGS = -Ofast -Wall $(MACHDEP) $(INCLUDE) -std=gnu++17  -Ingl -I. -Iwii -I/opt/devkitpro/portlibs/gamecube/include  -DGAMECUBE -DLOWEND
+CXXFLAGS = $(CFLAGS)
+LDFLAGS	=	$(MACHDEP) -Wl,-Map,$(notdir $@).map -s -flto
+
+#---------------------------------------------------------------------------------
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
+#---------------------------------------------------------------------------------
+OUTPUT	:=	$(CURDIR)/$(TARGET)
+
+VPATH	:=
+
+DEPSDIR	:=	$(CURDIR)
+
+SRCDIR		= ./ ./wii ./ngl
+VPATH		= $(SRCDIR)
+SRC_C		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
+SRC_CP		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.cpp))
+OBJ_C		= $(notdir $(patsubst %.c, %.o, $(SRC_C)))
+OBJ_CP		= $(notdir $(patsubst %.cpp, %.o, $(SRC_CP)))
+
+CFILES		= $(SRC_C) 
+CPPFILES	= $(SRC_CP)
+
+INCLUDES	:= . wii
+
+SFILES		:=
+BINFILES	:=
+
+#---------------------------------------------------------------------------------
+# use CXX for linking C++ projects, CC for standard C
+#---------------------------------------------------------------------------------
+LD	:=	$(CC)
+
+OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+
+DEPENDS	:=	$(OFILES:.o=.d)
+
+#---------------------------------------------------------------------------------
+# build a list of include paths
+#---------------------------------------------------------------------------------
+INCLUDE	:=	$(foreach dir,$(INCLUDES), -iquote $(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD) \
+			-I$(LIBOGC_INC) \
+			-I$(LIBOGC_INC)/SDL
+
+#---------------------------------------------------------------------------------
+# build a list of library paths
+#---------------------------------------------------------------------------------
+LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
+				-L$(LIBOGC_LIB) -L/opt/devkitpro/portlibs/gamecube/lib
+
+#---------------------------------------------------------------------------------
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@
+	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+
+#---------------------------------------------------------------------------------
+# main targets
+#---------------------------------------------------------------------------------
+$(OUTPUT).dol: $(OUTPUT).elf
+$(OUTPUT).elf: $(OFILES) technique.mod.o explode.o remove.o put.o
+
+-include $(DEPENDS)
+
+snd:
+	bin2s -a 32 -H technique_mod.h ./data_wii/technique.mod | powerpc-eabi-as -o technique.mod.o
+	bin2s -a 32 -H explode.h ./data/explode.pcm | powerpc-eabi-as -o explode.o
+	bin2s -a 32 -H put.h ./data/put.pcm | powerpc-eabi-as -o put.o
+	bin2s -a 32 -H remove.h ./data/remove.pcm | powerpc-eabi-as -o remove.o
+#---------------------------------------------------------------------------------
+run:
+	wiiload $(TARGET).dol
+
+#---------------------------------------------------------------------------------
+clean:
+	@echo clean ...
+	rm -f $(OFILES) technique.mod.o $(DEPENDS) $(OUTPUT).elf $(OUTPUT).dol
