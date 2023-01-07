@@ -14,8 +14,8 @@
 //If you want something like FBOs, make them variables and set them accordingly.
 //Watch out for different buffer sizes!
 #ifdef PS2_720P
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 512
 #else
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480

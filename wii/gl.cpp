@@ -24,6 +24,9 @@ gfx_tex_t tex;
 #include "gl.h"
 #include "fastmath.h"
 
+// Libogc2 required !
+// If this fails, try macros like #define WPAD_xxx PAD_xxx
+
 #define M(m, y, x) (m.data[y][x])
 #define P(m, y, x) (m->data[y][x])
 
@@ -62,6 +65,8 @@ gfx_screen_coords_t coords_bg;
 
 s8 xpad, cxpad, cypad;
 s8 ypad;
+u16 buttonsDown, buttonsHeld, buttonsUp;
+
 
 void pwrcb() {
 	quit = 1;
@@ -75,6 +80,40 @@ void rswcb(u32 irq, void* ctx) {
 }
 
 static GXRModeObj *rmode = NULL;
+
+
+GXRModeObj TVPal576ProgScale_Crafti =
+{
+    VI_TVMODE_PAL_PROG,      // viDisplayMode
+    640,             // fbWidth
+    480,             // efbHeight
+    576,             // xfbHeight
+    (VI_MAX_WIDTH_PAL - 640)/2,         // viXOrigin
+    (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
+    640,             // viWidth
+    576,             // viHeight
+    VI_XFBMODE_SF,   // xFBmode
+    GX_FALSE,        // field_rendering
+    GX_FALSE,        // aa
+
+    // sample points arranged in increasing Y order
+	{
+		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+		{6,6},{6,6},{6,6},  // pix 1
+		{6,6},{6,6},{6,6},  // pix 2
+		{6,6},{6,6},{6,6}   // pix 3
+	},
+    // vertical filter[7], 1/64 units, 6 bits each
+    {
+		 0,         // line n-1
+		 0,         // line n-1
+		21,         // line n
+		22,         // line n
+		21,         // line n
+		 0,         // line n+1
+		 0          // line n+1
+    }
+};
 
 void nglInit()
 {
@@ -95,16 +134,28 @@ void nglInit()
 	PAD_Init();
 	
 	SYS_SetResetCallback(rswcb);
-	#ifndef GAMECUBE
-	SYS_SetPowerCallback(pwrcb);
-	#endif
+#ifndef GAMECUBE
+	//SYS_SetPowerCallback(pwrcb);
+#endif
 	/*rmode = VIDEO_GetPreferredMode(NULL);
 	rmode = &TVPal576ProgScale;
 	VIDEO_Configure(rmode);*/
-
-	gfx_video_init(rmode);
+	
+	//VIDEO_WaitVSync();
+	PAD_ScanPads();
+	b = PAD_ButtonsDown(0);
+	gfx_video_init(&TVPal576ProgScale_Crafti);
+	/*if (b & PAD_BUTTON_B )
+	{
+		gfx_video_init(&TVNtsc480Prog);
+	}
+	else
+	{
+		gfx_video_init(rmode);
+	}*/
+	
 	gfx_init();
-	gfx_con_init(NULL);
+	//gfx_con_init(NULL);
 
 	memset(&tex, 0, sizeof(gfx_tex_t));
 	if (!gfx_tex_init(&tex, GFX_TF_RGB565, 0, 640, 480)) {
@@ -278,12 +329,18 @@ void nglSetBuffer(COLOR *screenBuf)
 
 void nglDisplay()
 {
+
+	PAD_ScanPads();
+	
 	xpad = PAD_StickX(0);
 	ypad = PAD_StickY(0);
 	cxpad = PAD_SubStickX(0);
 	cypad = PAD_SubStickY(0);
 	
-	PAD_ScanPads();
+	buttonsDown = PAD_ButtonsDown(0);
+	buttonsHeld = PAD_ButtonsHeld(0);
+	buttonsUp = PAD_ButtonsUp(0);
+	
 	b = PAD_ButtonsDown(0);
 	
 	while (!gfx_frame_start())

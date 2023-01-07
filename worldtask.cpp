@@ -393,7 +393,9 @@ void WorldTask::render()
     aabb = {x - player_width/2, y, z - player_width/2, x + player_width/2, y + player_height, z + player_width/2};
     //printf("X: %f Y: %f Z: %f XR: %d YR: %d\n", x.toFloat(), y.toFloat(), z.toFloat(), xr.toInt(), yr.toInt());
 
+#ifndef N64
     glColor3f(0.4f, 0.6f, 0.8f); //Blue background
+#endif
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glPushMatrix();
@@ -519,6 +521,7 @@ void WorldTask::resetWorld()
     world.clear();
 }
 
+#ifdef MENU_GRAPH
 void WorldTask::setMessage(const char *message)
 {
     if(strlen(message) >= sizeof(this->message))
@@ -527,3 +530,4 @@ void WorldTask::setMessage(const char *message)
     strcpy(this->message, message);
     message_timeout = 20;
 }
+#endif

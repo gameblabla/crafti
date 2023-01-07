@@ -1,0 +1,27 @@
+CXX	= xenon-g++
+CXXFLAGS = -O0 -g3 -DNDEBUG -Isrc -std=gnu++17  -Ingl -I. -Ipc
+
+#Including OPUS Libraries
+LDFLAGS = -lc -lm -lstdc++ -lSDL -lSDL_mixer
+
+DEFINES = -Wall
+OUTPUT = crafti.elf
+
+OBJS += $(patsubst %.cpp, %.o, $(shell find . -name \*.cpp))
+
+SRCDIR		= ./ ./pc ./ngl
+VPATH		= $(SRCDIR)
+SRC_C		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
+SRC_CP		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.cpp))
+OBJ_C		= $(notdir $(patsubst %.c, %.o, $(SRC_C)))
+OBJ_CP		= $(notdir $(patsubst %.cpp, %.o, $(SRC_CP)))
+OBJS		= $(OBJ_C) $(OBJ_CP)
+
+all: ${OUTPUT}
+
+${OUTPUT}: ${OBJS}
+	${CXX} ${CXXFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS} ${DEFINES} 
+
+	
+clean:
+	rm *.o *.img src/*.o src/sdl/*.o src/dc/*.o src/enemies/*.o ${OUTPUT} *.BIN *.iso *.mds *.mdf *.obj ./xbox/*.obj ./ngl/*.obj *.d ./xbox/*.d ./ngl/*.d *.exe

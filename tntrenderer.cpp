@@ -3,6 +3,7 @@
 #include "world.h"
 #include "tntrenderer.h"
 #include "sound.h"
+#include "extra_math.h"
 
 void TNTRenderer::tick(const BLOCK_WDATA /*block*/, int local_x, int local_y, int local_z, Chunk &c)
 {
@@ -23,7 +24,7 @@ void TNTRenderer::explode(const int local_x, const int local_y, const int local_
             for(int y = -dist; y <= dist; ++y)
                 for(int z = -dist; z <= dist; ++z)
                 {
-                    if(local_y + y + Chunk::SIZE * c.y < 1 || local_y + y + Chunk::SIZE * c.y >= World::HEIGHT*Chunk::SIZE || round(sqrt(x*x + y*y + z*z)) != dist)
+                    if(local_y + y + Chunk::SIZE * c.y < 1 || local_y + y + Chunk::SIZE * c.y >= World::HEIGHT*Chunk::SIZE || round(sqrt_real(x*x + y*y + z*z)) != dist)
                         continue;
 
                     //Explode other TNT blocks

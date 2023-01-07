@@ -52,7 +52,11 @@ void nglInit()
     vertices_count = 0;
     draw_mode = GL_TRIANGLES;
 
+	#ifdef HIGH_RES
+	vid_set_mode(DM_640x480, PM_RGB565);
+	#else
     vid_set_mode(DM_320x240, PM_RGB565);
+    #endif
     real_buffer = memalign(32, (SCREEN_HEIGHT*SCREEN_WIDTH)*2);
 
 	#ifdef SAFE_MODE
@@ -215,12 +219,18 @@ extern kbd_state_t* first_kbd_state;
 int rv;
 unsigned char key_g[5];
 
+#ifdef HIGH_RES
+#define BYTESTOUPDATE 153600*4
+#else
+#define BYTESTOUPDATE 153600
+#endif
+
 void nglDisplay()
 {
 	int i;
-	dcache_flush_range((uint32_t)screen,153600);
+	dcache_flush_range((uint32_t)screen,BYTESTOUPDATE);
 	while (!pvr_dma_ready());
-	pvr_dma_transfer(screen, (uint32_t)vram_l, 153600,PVR_DMA_VRAM32,-1,NULL,NULL);
+	pvr_dma_transfer(screen, (uint32_t)vram_l, BYTESTOUPDATE,PVR_DMA_VRAM32,-1,NULL,0);
 
    
 	/* No need to check again if pointer exists. */

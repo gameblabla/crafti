@@ -20,7 +20,7 @@ esac
 print '[Desktop Entry]
 Type=Application
 Name=nCrafti
-Comment=Minecraft clone
+Comment=Port by gameblabla
 Exec=crafti.elf
 Icon=icon
 Terminal=false

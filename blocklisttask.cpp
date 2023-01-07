@@ -68,12 +68,12 @@ constexpr int user_selectable_count = sizeof(user_selectable)/sizeof(*user_selec
 BlockListTask::BlockListTask()
 {
 	blocklist_top = (SCREEN_HEIGHT - blocklist_height - current_inventory.height()) / 2;
-    static_assert(field_width * fields_x <= SCREEN_WIDTH, "fields_x too high");
+    //static_assert(field_width * fields_x <= SCREEN_WIDTH, "fields_x too high");
     static_assert(fields_x * fields_y >= sizeof(user_selectable)/sizeof(*user_selectable), "Not enough fields");
 
-    if(blocklist_height + current_inventory.height() > SCREEN_WIDTH)
+    /*if(blocklist_height + current_inventory.height() > SCREEN_WIDTH)
         printf("fields_y too high\n");
-
+	*/
     blocklist_background = newTexture(SCREEN_WIDTH, SCREEN_HEIGHT, 0, false);
 }
 
@@ -92,8 +92,12 @@ void BlockListTask::makeCurrent()
 
 void BlockListTask::render()
 {
-    //drawBackground();
+#ifdef LOWEND
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#else
+	drawBackground();
     drawTextureOverlay(*blocklist_background, 0, 0, *screen, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+#endif
 
     int block_nr = 0;
     int screen_x, screen_y = blocklist_top + pad_y;
@@ -123,14 +127,16 @@ void BlockListTask::render()
 
     current_inventory.draw(*screen);
     drawStringCenter(global_block_renderer.getName(user_selectable[current_selection]), 0xFFFF, *screen, SCREEN_WIDTH / 2, SCREEN_HEIGHT - current_inventory.height() - fontHeight());
-    //drawStringCenter(global_block_renderer.getName(user_selectable[current_selection]), 0xFFFF, *screen, SCREEN_WIDTH / 2, 8);
+    #ifndef LOWEND
+    drawStringCenter(global_block_renderer.getName(user_selectable[current_selection]), 0xFFFF, *screen, SCREEN_WIDTH / 2, 8);
+    #endif
 }
 
 void BlockListTask::logic()
 {
     if(key_held_down)
-        key_held_down = keyPressed(KEY_NSPIRE_ESC) || keyPressed(KEY_NSPIRE_PERIOD) || keyPressed(KEY_NSPIRE_2) || keyPressed(KEY_NSPIRE_8) || keyPressed(KEY_NSPIRE_4) || keyPressed(KEY_NSPIRE_6) || keyPressed(KEY_NSPIRE_1) || keyPressed(KEY_NSPIRE_3) || keyPressed(KEY_NSPIRE_5) || keyPressed(KEY_NSPIRE_UP) || keyPressed(KEY_NSPIRE_DOWN) || keyPressed(KEY_NSPIRE_LEFT) || keyPressed(KEY_NSPIRE_RIGHT)  || keyPressed(KEY_NSPIRE_CLICK);
-    else if(keyPressed(KEY_NSPIRE_ESC) || keyPressed(KEY_NSPIRE_PERIOD))
+        key_held_down = keyPressed(KEY_NSPIRE_9) || keyPressed(KEY_NSPIRE_ESC) || keyPressed(KEY_NSPIRE_PERIOD) || keyPressed(KEY_NSPIRE_2) || keyPressed(KEY_NSPIRE_8) || keyPressed(KEY_NSPIRE_4) || keyPressed(KEY_NSPIRE_6) || keyPressed(KEY_NSPIRE_1) || keyPressed(KEY_NSPIRE_3) || keyPressed(KEY_NSPIRE_5) || keyPressed(KEY_NSPIRE_UP) || keyPressed(KEY_NSPIRE_DOWN) || keyPressed(KEY_NSPIRE_LEFT) || keyPressed(KEY_NSPIRE_RIGHT)  || keyPressed(KEY_NSPIRE_CLICK);
+    else if(keyPressed(KEY_NSPIRE_ESC) || keyPressed(KEY_NSPIRE_PERIOD) || keyPressed(KEY_NSPIRE_9))
     {
         world_task.makeCurrent();
 
@@ -197,4 +203,6 @@ void BlockListTask::logic()
 
         key_held_down = true;
     }
+    
+    nglDisplay();
 }

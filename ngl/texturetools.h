@@ -4,7 +4,7 @@
 #include "gl.h"
 
 //Throws if allocation failed
-TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill = 0, const bool transparent = true, const COLOR transparent_color = 0);
+TEXTURE* newTexture(const uint16_t w, const uint16_t h, const COLOR fill = 0, const bool transparent = true, const COLOR transparent_color = 0);
 void deleteTexture(TEXTURE *tex);
 
 //Textures have to have the same resolution
@@ -21,7 +21,7 @@ void drawTexture(const TEXTURE &src, TEXTURE &dest,
 //50% opacity
 void drawTextureOverlay(const TEXTURE &src, const unsigned int src_x, const unsigned int src_y, TEXTURE &dest, const unsigned int dest_x, const unsigned int dest_y, unsigned int w, unsigned int h);
 //Allocates memory for new texture, deleteTexture must be called
-TEXTURE* resizeTexture(const TEXTURE &src, const unsigned int w, const unsigned int h);
+TEXTURE* resizeTexture(const TEXTURE &src, const uint16_t w, const uint16_t h);
 //Makes the texture greyscale
 void greyscaleTexture(TEXTURE &tex);
 

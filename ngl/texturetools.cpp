@@ -12,7 +12,7 @@ private:
     FILE *fp;
 };
 
-TEXTURE* newTexture(const unsigned int w, const unsigned int h, const COLOR fill, const bool transparent, const COLOR transparent_color)
+TEXTURE* newTexture(const uint16_t w, const uint16_t h, const COLOR fill, const bool transparent, const COLOR transparent_color)
 {
     // TODO: Don't leak on exception
     TEXTURE *ret = new TEXTURE;
@@ -298,6 +298,7 @@ void drawTexture(const TEXTURE &src, TEXTURE &dest,
 
 void drawTextureOverlay(const TEXTURE &src, const unsigned int src_x, const unsigned int src_y, TEXTURE &dest, const unsigned int dest_x, const unsigned int dest_y, unsigned int w, unsigned int h)
 {
+#ifndef LOWEND
 #ifndef NDEBUG
     if(dest_x >= dest.width || dest_y >= dest.height)
         return;
@@ -365,9 +366,10 @@ void drawTextureOverlay(const TEXTURE &src, const unsigned int src_x, const unsi
         dest_ptr += nextline_dest;
         src_ptr += nextline_src;
     }
+#endif
 }
 
-TEXTURE* resizeTexture(const TEXTURE &src, const unsigned int w, const unsigned int h)
+TEXTURE* resizeTexture(const TEXTURE &src, const uint16_t w, const uint16_t h)
 {
     TEXTURE *ret = newTexture(w, h);
 

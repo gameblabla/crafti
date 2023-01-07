@@ -1,15 +1,15 @@
 #include <cstdlib>
-
+#include "extra_math.h"
 #include "wheatrenderer.h"
 
 void WheatRenderer::renderSpecialBlock(const BLOCK_WDATA block, GLFix x, GLFix y, GLFix z, Chunk &c)
 {
-    BlockRenderer::renderBillboard(x / BLOCK_SIZE, y / BLOCK_SIZE, z / BLOCK_SIZE, terrain_atlas[8 + getBLOCKDATA(block)][5].current, c);
+    BlockRenderer::renderBillboard(divide_real(x, BLOCK_SIZE), divide_real(y , BLOCK_SIZE), divide_real(z , BLOCK_SIZE), terrain_atlas[8 + getBLOCKDATA(block)][5].current, c);
 }
 
 AABB WheatRenderer::getAABB(const BLOCK_WDATA block, GLFix x, GLFix y, GLFix z)
 {
-    const GLFix height = BLOCK_SIZE / (max_growth + 1) * (getBLOCKDATA(block) + 1);
+    const GLFix height = divide_real(BLOCK_SIZE, (max_growth + 1)) * (getBLOCKDATA(block) + 1);
 
     return {x, y, z, x + BLOCK_SIZE, y + height, z + BLOCK_SIZE};
 }

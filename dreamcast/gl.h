@@ -13,8 +13,13 @@
 //These values are used to calculate offsets into the buffer.
 //If you want something like FBOs, make them variables and set them accordingly.
 //Watch out for different buffer sizes!
+#ifdef HIGH_RES
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
+#else
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
+#endif
 
 //GLFix is an integral part of all calculations.
 //Changing resolution and width may be an improvement or even break everything.
@@ -40,7 +45,7 @@ struct VECTOR3
     VECTOR3(const GLFix x, const GLFix y, const GLFix z)
         : x(x), y(y), z(z) {}
 
-    void print() const { printf("(%d %d %d)\n", x.toInteger<int>(), y.toInteger<int>(), z.toInteger<int>()); }
+    void print() const { /*printf("(%d %d %d)\n", x.toInteger<int>(), y.toInteger<int>(), z.toInteger<int>());*/ }
 
     GLFix x, y, z;
 };
@@ -51,7 +56,7 @@ struct VERTEX
     VERTEX(const GLFix x, const GLFix y, const GLFix z, const GLFix u, const GLFix v, const COLOR c)
         : x(x), y(y), z(z), u(u), v(v), c(c) {}
 
-    void print() const { printf("(%d %d %d) (0x%x) (%d %d)\n", x.toInteger<int>(), y.toInteger<int>(), z.toInteger<int>(), c, u.toInteger<int>(), v.toInteger<int>()); }
+    void print() const { /*printf("(%d %d %d) (0x%x) (%d %d)\n", x.toInteger<int>(), y.toInteger<int>(), z.toInteger<int>(), c, u.toInteger<int>(), v.toInteger<int>());*/ }
 
     GLFix x, y, z;
     GLFix u, v;

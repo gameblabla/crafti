@@ -7,6 +7,7 @@
 #include "chunk.h"
 #include "fastmath.h"
 #include "blockrenderer.h"
+#include "extra_math.h"
 
 //Texture with "Loading" written on it
 #include "textures/loadingtext.h"
@@ -35,7 +36,7 @@ static constexpr bool inBounds(int x, int y, int z)
 
 unsigned int Chunk::getPosition(unsigned int x, unsigned int y, unsigned int z)
 {
-    assert (x <= Chunk::SIZE && y <= Chunk::SIZE && z <= Chunk::SIZE);
+    //assert (x <= Chunk::SIZE && y <= Chunk::SIZE && z <= Chunk::SIZE);
 
     if(pos_indices[x][y][z] == -1)
     {
@@ -522,7 +523,7 @@ void Chunk::generate()
             int world_gen_min = 8, world_gen_max = World::HEIGHT * Chunk::SIZE * 0.7;
             int height = world_gen_min + (noise_val * (world_gen_max - world_gen_min)).round();
             int height_left = height - this->y * Chunk::SIZE;
-            int height_here = std::min(height_left, Chunk::SIZE);
+            int height_here = min_real(height_left, Chunk::SIZE);
 
             int y = 0;
 
@@ -650,7 +651,7 @@ void Chunk::makeTree(unsigned int x, unsigned int y, unsigned int z)
 {
     int max_height = World::HEIGHT * Chunk::SIZE - (y + this->y * Chunk::SIZE);
 
-    max_height = std::min(max_height - 4, rand() & 0x5);
+    max_height = min_real(max_height - 4, rand() & 0x5);
 
     if(max_height < 5)
         return;

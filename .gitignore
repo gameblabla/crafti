@@ -1,4 +1,14 @@
 *.o
+*.map
+technique_mod.h
+put.h
+remove.h
+explode.h
+technique.mod.h
+*.opk
+./audsrv_irx
+*.txt
+*.dol
 *.tns*
 *.elf
 *.creator

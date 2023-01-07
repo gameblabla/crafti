@@ -1,4 +1,5 @@
 #include "aabb.h"
+#include "extra_math.h"
 
 #include <algorithm>
 
@@ -18,12 +19,12 @@ AABB::AABB(VERTEX *list, unsigned int size)
 
 void AABB::set(VERTEX *v1, VERTEX *v2)
 {
-    low_x = std::min(v1->x, v1->y);
-    high_x = std::max(v1->x, v2->x);
-    low_y = std::min(v1->y, v2->y);
-    high_y = std::max(v1->y, v2->y);
-    low_z = std::min(v1->z, v2->z);
-    high_z = std::max(v1->z, v2->z);
+    low_x = min_real(v1->x, v1->y);
+    high_x = max_real(v1->x, v2->x);
+    low_y = min_real(v1->y, v2->y);
+    high_y = max_real(v1->y, v2->y);
+    low_z = min_real(v1->z, v2->z);
+    high_z = max_real(v1->z, v2->z);
 }
 
 void AABB::set(GLFix low_x, GLFix low_y, GLFix low_z, GLFix high_x, GLFix high_y, GLFix high_z)
@@ -107,8 +108,8 @@ AABB::SIDE AABB::intersectsRay(GLFix x, GLFix y, GLFix z, GLFix dx, GLFix dy, GL
         t_max_z = (high_z - z) / dz;
     }
 
-    GLFix min = std::max(std::max(std::min(t_min_x, t_max_x), std::min(t_min_y, t_max_y)), std::min(t_min_z, t_max_z));
-    GLFix max = std::min(std::min(std::max(t_min_x, t_max_x), std::max(t_min_y, t_max_y)), std::max(t_min_z, t_max_z));
+    GLFix min = max_real(max_real(min_real(t_min_x, t_max_x), min_real(t_min_y, t_max_y)), min_real(t_min_z, t_max_z));
+    GLFix max = min_real(min_real(max_real(t_min_x, t_max_x), max_real(t_min_y, t_max_y)), max_real(t_min_z, t_max_z));
 
     if(max < GLFix(0) || min > max)
         return NONE;

@@ -1,5 +1,6 @@
 CXX	= kos-c++
-CXXFLAGS = -O3 -flto -m4-single-only -fsingle-precision-constant -ftree-vectorize -fdata-sections -ffunction-sections -fargument-noalias-global -Isrc -std=gnu++17  -Ingl -I. -Idreamcast
+CXXFLAGS = -Ofast -flto -m4-single-only -fsingle-precision-constant -ftree-vectorize -fdata-sections -ffunction-sections -fargument-noalias-global -Isrc -std=gnu++17  -Ingl -I. -Idreamcast
+CXXFLAGS += -ml -m4-single-only -mfsca -ffast-math -O3 -mfsrra -funsafe-math-optimizations -ffinite-math-only
 CXXFLAGS += -DNDEBUG -DDREAMCAST
 
 #Including OPUS Libraries

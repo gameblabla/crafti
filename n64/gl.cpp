@@ -113,9 +113,9 @@ void nglInit()
 
 void nglUninit()
 {
-    uninit_fastmath();
+   /* uninit_fastmath();
     delete[] transformation;
-    delete[] z_buffer;
+    delete[] z_buffer;*/
     
 //    free(real_buffer);
 }
@@ -197,7 +197,7 @@ void nglPerspective(VERTEX *v)
     //TODO: Move this somewhere else
     /*if(!texture)
         return;*/
-
+/*
     if(v->u > GLFix(texture->width))
     {
        // printf("Warning: Texture coord out of bounds!\n");
@@ -218,7 +218,7 @@ void nglPerspective(VERTEX *v)
     {
         //printf("Warning: Texture coord out of bounds!\n");
         v->v = 0;
-    }
+    }*/
 }
 
 void nglPerspective(VECTOR3 *v)
@@ -387,9 +387,9 @@ static inline void pixel(const int x, const int y, const GLFix z, const COLOR c)
 
 RGB rgbColor(const COLOR c)
 {
-    const GLFix r = (c >> 11) & 0x1F;
-    const GLFix g = (c >> 6) & 0x1F;
-    const GLFix b = (c >> 1) & 0x1F;
+	register const GLFix r = (c >> 11) & 0x1F;
+	register const GLFix g = (c >> 6) & 0x1F;
+	register const GLFix b = (c >> 1) & 0x1F;
 
     return {r / GLFix(0b11111), g / GLFix(0b11111), b / GLFix(0b11111)};
 }
@@ -401,9 +401,9 @@ COLOR colorRGB(const RGB rgb)
 
 COLOR colorRGB(const GLFix r, const GLFix g, const GLFix b)
 {
-    const int r1 = (r * GLFix(0b11111)).round();
-    const int g1 = (g * GLFix(0b11111)).round();
-    const int b1 = (b * GLFix(0b11111)).round();
+    register const uint_fast8_t r1 = (r * GLFix(0b11111)).round();
+	register const uint_fast8_t g1 = (g * GLFix(0b11111)).round();
+    register const uint_fast8_t b1 = (b * GLFix(0b11111)).round();
 
 	return ((r1 & 0x1F) << 11) | ((g1 & 0x1F) << 6) | ((b1 & 0x1F) << 1) | ((255 & 0x1F) >> 7);
 }

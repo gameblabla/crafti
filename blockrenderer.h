@@ -61,6 +61,8 @@ public:
     virtual AABB getAABB(const BLOCK_WDATA block, GLFix x, GLFix y, GLFix z) override;
 
     virtual void drawPreview(const BLOCK_WDATA block, TEXTURE &dest, const int x, const int y) override;
+    // Used for particles spawned on destruction
+    const TerrainAtlasEntry &materialTexture(const BLOCK_WDATA block);
 
     virtual bool action(const BLOCK_WDATA block, const int local_x, const int local_y, const int local_z, Chunk &c) override;
     virtual void tick(const BLOCK_WDATA block, int local_x, int local_y, int local_z, Chunk &c) override;
@@ -85,7 +87,7 @@ class DumbBlockRenderer : public BlockRenderer
     virtual bool isFullyOriented(const BLOCK_WDATA /*block*/) override { return false; }
 
     virtual bool isBlockShaped(const BLOCK_WDATA /*block*/) override { return true; }
-    virtual AABB getAABB(const BLOCK_WDATA /*block*/, GLFix /*x*/, GLFix /*y*/, GLFix /*z*/) override { return {}; }
+    virtual AABB getAABB(const BLOCK_WDATA block, GLFix x, GLFix y, GLFix z) override;
 
     virtual void drawPreview(const BLOCK_WDATA /*block*/, TEXTURE &/*dest*/, const int /*x*/, const int /*y*/) override { return; }
 
@@ -108,7 +110,6 @@ public:
     virtual bool isFullyOriented(const BLOCK_WDATA /*block*/) override { return false; }
 
     virtual bool isBlockShaped(const BLOCK_WDATA /*block*/) override { return true; }
-    virtual AABB getAABB(const BLOCK_WDATA /*block*/, GLFix /*x*/, GLFix /*y*/, GLFix /*z*/) override { return {}; } //Handled by isBlockShaped
 
     virtual void drawPreview(const BLOCK_WDATA block, TEXTURE &dest, const int dest_x, const int dest_y) override;
 

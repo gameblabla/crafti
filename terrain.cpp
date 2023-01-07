@@ -191,11 +191,11 @@ void terrainInit(const char *texture_path)
         if(bt.sides & BLOCK_BACK_BIT)
             tae = &block_textures[bt.block][BLOCK_BACK].current;
 
-        if(!tae)
+        /*if(!tae)
         {
             printf("Block %d has no texture!\n", bt.block);
             continue;
-        }
+        }*/
 
         //- 1 to reverse the workaround above. Yes, I hate myself for this.
         drawTexture(*terrain_current, *terrain_quad, tae->left - 1, tae->top - 1, field_width, field_height, x, 0, field_width, field_height);

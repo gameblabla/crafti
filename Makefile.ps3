@@ -1,0 +1,31 @@
+CXX	= ppu-g++
+
+include $(PSL1GHT)/ppu_rules
+
+CXXFLAGS = -O2 -mregnames -Wall -mcpu=cell -DNDEBUG -Isrc -std=gnu++17  -Ingl -I. -Ips3
+CXXFLAGS += -I$(PS3DEV)/ppu/include/freetype2 -I$(PS3DEV)/ppu/include/SDL -I$(PS3DEV)/ppu/include/ -I$(PS3DEV)/ppu/include/rsx -I$(PS3DEV)/ppu/include/lv2 -I$(PS3DEV)/ppu/include/sys
+CXXFLAGS += -I$(PS3DEV)/portlibs/ppu/include
+#Including OPUS Libraries
+LDFLAGS = -Wl,--start-group -lio -lsysutil -lgcm_sys -lrsx -laudio -L$(PS3DEV)/ppu/lib -L$(PS3DEV)/portlibs/ppu/lib -lc -lm -lstdc++ -lSDL -lSDL_mixer -lmikmod -Wl,--end-group
+
+DEFINES = -Wall
+OUTPUT = crafti_ps3.elf
+
+OBJS += $(patsubst %.cpp, %.o, $(shell find . -name \*.cpp))
+
+SRCDIR		= ./ ./ps3 ./ngl
+VPATH		= $(SRCDIR)
+SRC_C		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
+SRC_CP		= $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.cpp))
+OBJ_C		= $(notdir $(patsubst %.c, %.o, $(SRC_C)))
+OBJ_CP		= $(notdir $(patsubst %.cpp, %.o, $(SRC_CP)))
+OBJS		= $(OBJ_C) $(OBJ_CP)
+
+all: ${OUTPUT}
+
+${OUTPUT}: ${OBJS}
+	${CXX} ${CXXFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS} ${DEFINES} 
+
+	
+clean:
+	rm *.o *.img src/*.o src/sdl/*.o src/dc/*.o src/enemies/*.o ${OUTPUT} *.BIN *.iso *.mds *.mdf *.obj ./xbox/*.obj ./ngl/*.obj *.d ./xbox/*.d ./ngl/*.d *.exe

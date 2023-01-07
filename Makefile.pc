@@ -1,5 +1,5 @@
 CXX	= g++
-CXXFLAGS = -O2 -DNDEBUG -pg -Isrc -std=gnu++17  -Ingl -I. -Ipc
+CXXFLAGS = -Ofast -pg -DNDEBUG -DNOJOY -DLOWEND -Isrc -Ingl -I. -Ipc -std=gnu++17
 
 #Including OPUS Libraries
 LDFLAGS = -lc -lm -lstdc++ -lSDL -lSDL_mixer

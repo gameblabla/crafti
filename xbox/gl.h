@@ -13,8 +13,16 @@
 //These values are used to calculate offsets into the buffer.
 //If you want something like FBOs, make them variables and set them accordingly.
 //Watch out for different buffer sizes!
+#if defined(HIGH_RESOLUTION_1080p)
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
+#elif defined(HIGH_RESOLUTION_720p)
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
+#else
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
+#endif
 
 //GLFix is an integral part of all calculations.
 //Changing resolution and width may be an improvement or even break everything.

@@ -120,7 +120,7 @@ void nglInit()
 	dmaKit_chan_init(DMA_CHANNEL_GIF);
 
 	#ifdef PS2_720P
-	gsGlobal = gsKit_hires_init_global();
+	gsGlobal = gsKit_init_global();
 	gsGlobal->Mode = GS_MODE_DTV_720P;
 	gsGlobal->Width = 1280;
 	gsGlobal->Height = 720;
@@ -154,20 +154,20 @@ void nglInit()
 	gsGlobal->StartX = 0;
 	gsGlobal->StartY = 0;
 
-	#ifdef PS2_720P
-	gsKit_hires_init_screen(gsGlobal, iPassCount);
-	gsKit_mode_switch(gsGlobal, GS_PERSISTENT);
-	#else
 	gsKit_init_screen(gsGlobal);
 	gsKit_mode_switch(gsGlobal, GS_PERSISTENT);
-	#endif
 
 	// Internal resolution
 	bigtex.Width = SCREEN_WIDTH;
 	bigtex.Height = SCREEN_HEIGHT;
 	bigtex.PSM = GS_PSM_CT16;
-	bigtex.Filter = GS_FILTER_NEAREST;
 	
+#ifdef PS2_720P
+	bigtex.Filter = GS_FILTER_LINEAR;
+#else
+	bigtex.Filter = GS_FILTER_NEAREST;
+#endif
+
 	//bigtex.Mem = (u32 *)memalign(128, gsKit_texture_size_ee(bigtex.Width, bigtex.Height, bigtex.PSM));
 	bigtex.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(bigtex.Width, bigtex.Height, bigtex.PSM), GSKIT_ALLOC_USERBUFFER);
 	
@@ -177,6 +177,18 @@ void nglInit()
 	//screen = bigtex.Mem;
 	gsKit_setup_tbw(&bigtex);
 	
+#ifdef PS2_720P
+	gsKit_prim_sprite_texture(gsGlobal, &bigtex, 0.0f,  // X1
+		0.0f,  // Y2
+		0.0f,  // U1
+		0.0f,  // V1
+		(float)gsGlobal->Width, // X2
+		(float)gsGlobal->Height, // Y2
+		(float)SCREEN_WIDTH, // U2
+		(float)SCREEN_HEIGHT, // V2
+		0,
+		0x80808080);
+#else
 	gsKit_prim_sprite_texture(gsGlobal, &bigtex, 0.0f,  // X1
 		0.0f,  // Y2
 		0.0f,  // U1
@@ -187,7 +199,7 @@ void nglInit()
 		(float)gsGlobal->Height, // V2
 		0,
 		0x80808080);
-
+#endif
 	memset(pad_game, 0, 14);
 	
     init_fastmath();
@@ -363,14 +375,6 @@ void nglSetBuffer(COLOR *screenBuf)
 void nglDisplay()
 {
 	int ret;
-	gsKit_texture_send(bigtex.Mem, bigtex.Width, bigtex.Height, bigtex.Vram, bigtex.PSM, bigtex.TBW, GS_CLUT_NONE);
-#ifdef PS2_720P
-	gsKit_hires_sync(gsGlobal);
-	gsKit_hires_flip(gsGlobal);
-#else
-	gsKit_queue_exec(gsGlobal);
-	gsKit_sync_flip(gsGlobal);
-#endif
 
 	ret = padRead(0, 0, &buttons); // port, slot, buttons
 	if (ret != 0)
@@ -424,6 +428,11 @@ void nglDisplay()
             frames = 0;
         }
     #endif
+    
+    // It must be in this order OTHERWISE, graphical glitches
+	gsKit_sync_flip(gsGlobal);
+	gsKit_queue_exec(gsGlobal);
+	gsKit_texture_send(bigtex.Mem, bigtex.Width, bigtex.Height, bigtex.Vram, bigtex.PSM, bigtex.TBW, GS_CLUT_NONE);
 }
 
 void nglRotateX(const GLFix a)

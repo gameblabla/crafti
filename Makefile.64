@@ -4,12 +4,17 @@ all: crafti.z64
 BUILD_DIR = build
 include $(N64_INST)/include/n64.mk
 
-DEFINES = -Ingl -I. -In64 -DN64 -Ofast -flto -fdata-sections -ffunction-sections -fsingle-precision-constant -fno-common -march=vr4300 -mfix4300 -mno-xgot -mno-check-zero-division -mno-fp-exceptions -mframe-header-opt
+DEFINES = -Ingl -I. -In64 -DN64 -Wdouble-promotion -Ofast -fdata-sections -ffunction-sections -fsingle-precision-constant -fno-common -march=vr4300 -mfix4300 -mno-xgot -mno-check-zero-division -mno-fp-exceptions -mframe-header-opt
 DEFINES += -DNDEBUG -DLOWEND -D_256
+DEFINES += -Wformat=2 -Wformat-truncation -Wundef --param case-values-threshold=15
+
+DEFINES += -finline-limit=42 -fno-unroll-loops -fno-ipa-cp -ffast-math
+# this gets you about 20% better execution speed on 32bit arm/mips
+DEFINES += -fno-common -fno-stack-protector -fno-guess-branch-probability -fno-caller-saves -fno-tree-loop-if-convert -fno-regmove
 
 N64_CFLAGS += $(DEFINES)
-N64_CXXFLAGS += $(DEFINES)
-N64_LDFLAGS += -ldragon --as-needed --gc-sections -flto -s
+N64_CXXFLAGS += $(DEFINES) -fno-rtti -fno-exceptions
+N64_LDFLAGS += -ldragon -ldragonsys --as-needed --gc-sections -s
 
 N64_ROM_SAVETYPE = none
 N64_ROM_REGIONFREE = true

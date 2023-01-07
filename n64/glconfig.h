@@ -13,7 +13,7 @@
 //It's a bit slower though.
 //#define BETTER_PERSPECTIVE
 
-//#define FPS_COUNTER
+#define FPS_COUNTER
 
 #if defined(TEXTURE_SUPPORT) && defined(INTERPOLATE_COLORS)
 #error "Colors and textures cannot be used simultaneously!"

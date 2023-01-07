@@ -125,6 +125,7 @@ void Task::initializeGlobals(const char *savefile)
 			drawString("Don't bitch about it if you can't", 0xFFFF, *screen, 16, 80);
 			drawString("afford that extra memory, SCRUB !!", 0xFFFF, *screen, 16, 96);
 			drawString("PUSH START to try anyway", 0xFFFF, *screen, 16, 144);
+			drawString("Port by gameblabla", 0xFFFF, *screen, 16, 192);
 			//__n64_memcpy_ASM((uint16_t *)__get_buffer( disp ) ,real_buffer, (SCREEN_WIDTH*SCREEN_HEIGHT)*2);
 			display_show(disp);
 		}
@@ -141,14 +142,14 @@ void Task::deinitializeGlobals()
 
 void Task::saveBackground()
 {
-    copyTexture(*screen, *background);
+   /* copyTexture(*screen, *background);*/
 
     background_saved = true;
 }
 
 void Task::drawBackground()
 {
-    copyTexture(*background, *screen);
+   // copyTexture(*background, *screen);
 }
 
 static constexpr int savefile_version = 5;
@@ -158,7 +159,7 @@ static constexpr int savefile_version = 5;
 
 bool Task::load()
 {
-    FILE *file = fopen(savefile, "rb");
+    /*FILE *file = fopen(savefile, "rb");
     if(!file)
         return false;
 
@@ -197,12 +198,13 @@ bool Task::load()
 
     world.setPosition(world_task.x, world_task.y, world_task.z);
 
-    return ret;
+    return ret;*/
+    return false;
 }
 
 bool Task::save()
 {
-    FILE *file = fopen(savefile, "wb");
+   /* FILE *file = fopen(savefile, "wb");
     if(!file)
         return false;
 
@@ -225,5 +227,6 @@ bool Task::save()
 
     fclose(file);
 
-    return ret;
+    return ret;*/
+    return false;
 }
