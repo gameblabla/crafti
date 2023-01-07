@@ -1,7 +1,7 @@
 #ifndef EXTRA_MATH
 #define EXTRA_MATH
 
-#ifdef DREAMCASTs
+#ifdef DREAMCAST
 #include "sh4_math.h"
 #define sqrt_real MATH_Fast_Sqrt
 #define min_real MATH_Fast_Fminf
